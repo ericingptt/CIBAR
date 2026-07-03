@@ -1,1 +1,53 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="../css/style.css"><title>VIP 群組</title></head><body><main class="app"><div class="topbar"><div class="brand">陳老師 AI 飆股｜321 人</div><a class="home-link" href="../index.html">首頁</a></div><section class="chat" id="chatBox"></section><div class="toast show">AI 輕提示：大量獲利截圖可能為詐騙話術，請勿作為投資依據。</div><div class="btns"><button id="nextBtn" style="display:none" class="btn" onclick="go('scene01_platform_register.html')">前往註冊平台</button></div></main><script src="../js/app.js"></script><script>typeMessages([{text:'你已加入群組。',type:'system'},{text:'會員A：老師真的很準，昨天進場今天就賺了 15 萬！'},{text:'會員B：我剛剛出金成功，已入帳，謝謝老師。'},{text:'會員C：原本只是試試看，沒想到三天就有收益。'},{text:'小林助理：新朋友請先完成平台註冊，今天最後一波名額。'},{text:'陳老師：下午 2 點前完成入金，晚上公布操作標的。'},{text:'會員D：我已經加碼到 30 萬，這波一定要跟。'}],'#nextBtn')</script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="../css/style.css">
+  <title>VIP 群組</title>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="brand">陳老師 AI 飆股｜321 人</div>
+      <a class="home-link" href="../index.html">首頁</a>
+    </div>
+    <section class="chat vip-chat" id="chatBox" aria-live="polite"></section>
+    <div class="btns">
+      <button id="nextBtn" style="display:none" class="btn" onclick="go('scene01_platform_register.html')">前往註冊平台</button>
+    </div>
+  </main>
+
+  <div class="modal show" id="vipWarningModal">
+    <div class="warning">
+      <h2>AI 提示</h2>
+      <p>大量獲利截圖可能為詐騙話術，<br>請勿僅依據他人獲利截圖作為投資依據。</p>
+      <button class="btn danger" id="continueVip">繼續體驗</button>
+    </div>
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script>
+    document.querySelector('#continueVip').addEventListener('click', () => {
+      document.querySelector('#vipWarningModal').classList.remove('show');
+    });
+
+    typeMessages([
+      {text:'你已加入群組。',type:'system',delay:800},
+      {text:'陳老師：今天盤勢很漂亮，AI 模型剛剛抓到一檔短線標的。'},
+      {text:'小林助理：新朋友可以先觀察，老師等等會公布操作方向。'},
+      {text:'會員A：我昨天跟老師那檔，今天開盤就拉上去了，真的有點誇張。'},
+      {text:'會員B：我剛剛試著出金，已經入帳了，謝謝老師。'},
+      {text:'會員C：原本只是進來看看，沒想到三天就有收益。'},
+      {text:'會員D：我今天先小額跟 1 萬，想先試水溫。'},
+      {text:'會員E：早上看帳面多了 2,800，雖然不多但很有感。'},
+      {text:'小林助理：目前下午場名額剩 12 位，還沒補資料的我會一對一提醒。'},
+      {text:'會員F：昨天照老師提醒停利，剛剛本金跟獲利都回到帳戶了。'},
+      {text:'會員G：我先把上週獲利留下來，今天準備再加碼一點。'},
+      {text:'陳老師：今天這檔不適合猶豫，下午 2 點前完成入金，晚上我會公布操作策略。'},
+      {text:'小林助理：還沒完成註冊的新朋友，請先點下方連結開通帳戶。'},
+      {text:'陳老師：完成平台註冊後把帳號截圖私訊助理，方便我安排今晚的操作名單。'}
+    ],'#nextBtn',{messageDelay:1200,typingDelay:650});
+  </script>
+</body>
+</html>

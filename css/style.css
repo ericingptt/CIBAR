@@ -23,3 +23,6 @@
 @keyframes popCandle{0%{opacity:0;transform:scaleY(.18) translateY(12px)}100%{opacity:1;transform:scaleY(1) translateY(0)}}
 @keyframes chartSweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 @keyframes withdrawReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.line-choice-btn{color:#111827;background:#fff;border:1px solid #cbd5e1;box-shadow:0 4px 12px rgba(15,23,42,.12)}
+.vip-chat{max-height:68vh;overflow-y:auto}
+.candlestick-chart{min-height:220px}
