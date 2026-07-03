@@ -1,1 +1,46 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="css/style.css"><title>掃描線索</title></head><body><main class="app"><div class="topbar"><div class="brand">AI 視覺線索比對</div><a class="home-link" href="index.html">首頁</a></div><section class="card"><h2>請尋找現場可疑線索</h2><p>可掃描桌上真實物件，也可掃描背板上的對應圖案。第一版先用測試按鈕模擬辨識結果。</p><div class="scanner"><video id="camera" class="camera" autoplay playsinline muted></video><div class="scan-box"></div><div class="hint" id="cameraStatus">AI 視覺線索比對中……</div></div><div class="btns scenario-grid"><button class="btn" onclick="simulateScan('investment')">模擬掃到：假投資</button><button class="btn" onclick="simulateScan('romance')">模擬掃到：假交友</button><button class="btn" onclick="simulateScan('police')">模擬掃到：假檢警</button><button class="btn" onclick="simulateScan('shopping')">模擬掃到：假買家</button><button class="btn" onclick="simulateScan('atm')">模擬掃到：解除分期</button></div></section></main><script src="js/app.js"></script><script>initCamera()</script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="css/style.css">
+  <title>掃描線索</title>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="brand">AI 視覺線索比對</div>
+      <a class="home-link" href="index.html">首頁</a>
+    </div>
+
+    <section class="ai-init" id="aiInit" aria-live="polite">
+      <div class="ai-core" aria-hidden="true"></div>
+      <h2>AI 系統初始化中……</h2>
+      <ul>
+        <li>語言模組載入完成</li>
+        <li>視覺線索比對模組啟動</li>
+        <li>相機權限準備中</li>
+      </ul>
+    </section>
+
+    <section class="card scanner-card" id="scannerCard" hidden>
+      <h2>請尋找現場可疑線索</h2>
+      <p>可掃描桌上真實物件，也可掃描背板上的對應圖案。第一版先用測試按鈕模擬辨識結果。</p>
+      <div class="scanner">
+        <video id="camera" class="camera" autoplay playsinline muted></video>
+        <div class="scan-box"></div>
+        <div class="hint" id="cameraStatus">AI 視覺線索比對中……</div>
+      </div>
+      <div class="btns scenario-grid">
+        <button class="btn" onclick="simulateScan('investment')">模擬掃到：假投資</button>
+        <button class="btn" onclick="simulateScan('romance')">模擬掃到：假交友</button>
+        <button class="btn" onclick="simulateScan('police')">模擬掃到：假檢警</button>
+        <button class="btn" onclick="simulateScan('shopping')">模擬掃到：假買家</button>
+        <button class="btn" onclick="simulateScan('atm')">模擬掃到：解除分期</button>
+      </div>
+    </section>
+  </main>
+  <script src="js/app.js"></script>
+  <script>initScanner()</script>
+</body>
+</html>

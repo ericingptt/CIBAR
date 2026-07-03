@@ -1,1 +1,41 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="../css/style.css"><title>LINE 助理</title></head><body><main class="app"><div class="topbar"><div class="brand">陳老師投資助理</div><a class="home-link" href="../index.html">首頁</a></div><section class="chat" id="chatBox"></section><div class="btns"><button id="nextBtn" style="display:none" class="btn" onclick="go('scene01_vip_group.html')">加入 VIP 群組</button></div></main><script src="../js/app.js"></script><script>typeMessages([{text:'您好，歡迎加入陳老師 AI 選股體驗。'},{text:'今天有一檔短線標的，老師只開放少數名額。'},{text:'請問我要怎麼開始？',type:'user'},{text:'先加入 VIP 群組，老師會在裡面公告進出場時間。'},{text:'不用自己研究，照著老師指示就可以。'}],'#nextBtn')</script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="../css/style.css">
+  <title>陳老師投資助理</title>
+</head>
+<body>
+  <main class="app phone-app">
+    <section class="phone-frame">
+      <header class="chat-header">
+        <a class="chat-back" href="../index.html" aria-label="回首頁">‹</a>
+        <div class="chat-person">
+          <div class="chat-avatar">陳</div>
+          <div>
+            <div class="chat-title">陳老師投資助理</div>
+            <small>模擬通訊軟體聊天室</small>
+          </div>
+        </div>
+      </header>
+      <section class="chat line-chat" id="chatBox"></section>
+      <div class="quick-reply" id="userReply" hidden>
+        <div class="msg user">請問我要怎麼開始？</div>
+      </div>
+      <div class="btns chat-actions">
+        <button id="nextBtn" hidden class="btn" onclick="go('scene01_vip_group.html')">加入 VIP 群組</button>
+      </div>
+    </section>
+  </main>
+  <script src="../js/app.js"></script>
+  <script>
+    typeMessages([
+      {text:'您好，歡迎加入陳老師 AI 選股體驗。'},
+      {text:'今天有一檔短線標的，老師只開放少數名額。'},
+      {text:'先加入 VIP 群組，老師會在裡面公告進出場時間。'},
+      {text:'不用自己研究，照著老師指示就可以。'}
+    ], '#nextBtn', {replySelector:'#userReply'})
+  </script>
+</body>
+</html>
