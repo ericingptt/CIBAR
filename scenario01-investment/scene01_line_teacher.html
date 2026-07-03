@@ -10,19 +10,18 @@
   <main class="app phone-app">
     <section class="phone-frame">
       <header class="chat-header">
-        <a class="chat-back" href="../index.html" aria-label="回首頁">‹</a>
         <div class="chat-person">
           <div class="chat-avatar">陳</div>
           <div>
-            <div class="chat-title">陳老師</div>
+            <div class="chat-title">陳老師投資助理</div>
             <small>線上</small>
           </div>
         </div>
       </header>
-      <section class="chat line-chat" id="chatBox"></section>
+      <section class="chat line-chat" id="chatBox" aria-live="polite"></section>
       <div class="btns chat-actions" id="choiceActions" hidden>
         <button class="btn secondary" type="button" data-choice="A">我想直接跟老師操作</button>
-        <button class="btn secondary" type="button" data-choice="B">我想先自己研究看看</button>
+        <button class="btn secondary" type="button" data-choice="B">我想先自己試試看</button>
       </div>
       <div class="btns chat-actions">
         <button id="nextBtn" hidden class="btn" onclick="go('scene01_vip_group.html')">加入 VIP 群組</button>
@@ -34,8 +33,35 @@
     const chatBox = document.querySelector('#chatBox');
     const choiceActions = document.querySelector('#choiceActions');
     const nextBtn = document.querySelector('#nextBtn');
-    const readDelay = 1500;
-    const typingDelay = 900;
+    const readDelay = 1900;
+    const typingDelay = 1000;
+
+    const openingMessages = [
+      '您好😊\n歡迎加入陳老師 AI 選股體驗。',
+      '剛剛看到您是從 AI 選股直播課進來的，想先了解一下您的需求。',
+      '請問您目前比較傾向哪一種方式？'
+    ];
+
+    const routes = {
+      A: {
+        user: '我想直接跟老師操作',
+        assistant: [
+          '沒問題😊\n很多新朋友一開始也是希望有人帶著操作，這樣比較安心。',
+          '老師平常不會在公開頁面直接公布標的，主要是在 VIP 群組裡即時分享盤勢和操作策略。',
+          '我可以先邀請您進群，等等老師有新的操作提醒，您就能第一時間看到。'
+        ]
+      },
+      B: {
+        user: '我想先自己試試看',
+        assistant: [
+          '可以理解😊\n很多學員一開始也是想先自己研究看看。',
+          '老師不會強迫大家跟單，您也可以先進 VIP 群組觀察大家每天怎麼分析市場。',
+          '裡面會有老師的盤勢解析、學員交流和操作紀錄，您可以先學習，不一定要馬上投入。',
+          '而且群組目前免費，不懂的地方也可以直接發問。',
+          '我先幫您開通 VIP 群組邀請，您進去看看大家怎麼操作就好。'
+        ]
+      }
+    };
 
     function scrollChat(){
       chatBox.scrollTop = chatBox.scrollHeight;
@@ -43,7 +69,7 @@
 
     function addChatMessage(text, type = ''){
       const div = document.createElement('div');
-      div.className = 'msg ' + type;
+      div.className = `msg ${type}`.trim();
       div.textContent = text;
       chatBox.appendChild(div);
       scrollChat();
@@ -52,8 +78,8 @@
     function showTyping(){
       const div = document.createElement('div');
       div.className = 'msg typing';
-      div.setAttribute('aria-label', '對方正在輸入');
-      div.innerHTML = '<span>對方正在輸入</span><i></i><i></i><i></i>';
+      div.setAttribute('aria-label', '正在輸入');
+      div.innerHTML = '<span>正在輸入……</span><i></i><i></i><i></i>';
       chatBox.appendChild(div);
       scrollChat();
       return div;
@@ -71,24 +97,26 @@
       await wait(delay);
     }
 
+    async function sayAll(messages, finalDelay = readDelay){
+      for(let index = 0; index < messages.length; index += 1){
+        const isLast = index === messages.length - 1;
+        await assistantSay(messages[index], isLast ? finalDelay : readDelay);
+      }
+    }
+
     async function startAssistant(){
-      await assistantSay('您好😊\n歡迎加入陳老師 AI 選股體驗。');
-      await assistantSay('老師想先了解一下您的投資需求。');
-      await assistantSay('請問您目前比較傾向哪一種方式？', 500);
+      await sayAll(openingMessages, 700);
       choiceActions.hidden = false;
       scrollChat();
     }
 
     async function chooseNeed(choice){
+      const route = routes[choice];
+      if(!route) return;
       choiceActions.hidden = true;
-      addChatMessage(choice === 'A' ? '我想直接跟老師操作' : '我想先自己研究看看', 'user');
-      await wait(700);
-      if(choice === 'A'){
-        await assistantSay('沒問題😊\n我直接邀請您加入老師的 VIP 群組。\n老師每天都會在群組即時分享盤勢和操作策略。', 500);
-      }else{
-        await assistantSay('其實很多學員一開始也是這樣想😊\n老師不會強迫大家跟單。\n您也可以先進 VIP 群觀察大家每天怎麼分析市場、怎麼討論股票。\n等您熟悉之後，再決定要不要跟老師操作也沒關係。');
-        await assistantSay('而且群組目前免費，不懂都可以直接發問。', 500);
-      }
+      addChatMessage(route.user, 'user');
+      await wait(900);
+      await sayAll(route.assistant, 500);
       nextBtn.hidden = false;
       nextBtn.style.display = 'block';
       scrollChat();
