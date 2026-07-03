@@ -20,22 +20,85 @@
         </div>
       </header>
       <section class="chat line-chat" id="chatBox"></section>
-      <div class="quick-reply" id="userReply" hidden>
-        <div class="msg user">請問我要怎麼開始？</div>
+      <div class="btns chat-actions" id="choiceActions" hidden>
+        <button class="btn secondary" type="button" data-choice="A">我想直接跟老師操作</button>
+        <button class="btn secondary" type="button" data-choice="B">我想先自己研究看看</button>
       </div>
       <div class="btns chat-actions">
-        <button id="nextBtn" hidden class="btn" onclick="go('scene01_vip_group.html')">加入群組</button>
+        <button id="nextBtn" hidden class="btn" onclick="go('scene01_vip_group.html')">加入 VIP 群組</button>
       </div>
     </section>
   </main>
   <script src="../js/app.js"></script>
   <script>
-    typeMessages([
-      {text:'您好，歡迎加入陳老師 AI 選股體驗。'},
-      {text:'今天有一檔短線標的，老師只開放少數名額。'},
-      {text:'先加入群組，老師會在裡面公告進出場時間。'},
-      {text:'不用自己研究，照著老師指示就可以。'}
-    ], '#nextBtn', {replySelector:'#userReply'})
+    const chatBox = document.querySelector('#chatBox');
+    const choiceActions = document.querySelector('#choiceActions');
+    const nextBtn = document.querySelector('#nextBtn');
+    const readDelay = 1500;
+    const typingDelay = 900;
+
+    function scrollChat(){
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function addChatMessage(text, type = ''){
+      const div = document.createElement('div');
+      div.className = 'msg ' + type;
+      div.textContent = text;
+      chatBox.appendChild(div);
+      scrollChat();
+    }
+
+    function showTyping(){
+      const div = document.createElement('div');
+      div.className = 'msg typing';
+      div.setAttribute('aria-label', '對方正在輸入');
+      div.innerHTML = '<span>對方正在輸入</span><i></i><i></i><i></i>';
+      chatBox.appendChild(div);
+      scrollChat();
+      return div;
+    }
+
+    function wait(ms){
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function assistantSay(text, delay = readDelay){
+      const typing = showTyping();
+      await wait(typingDelay);
+      typing.remove();
+      addChatMessage(text);
+      await wait(delay);
+    }
+
+    async function startAssistant(){
+      await assistantSay('您好😊\n歡迎加入陳老師 AI 選股體驗。');
+      await assistantSay('老師想先了解一下您的投資需求。');
+      await assistantSay('請問您目前比較傾向哪一種方式？', 500);
+      choiceActions.hidden = false;
+      scrollChat();
+    }
+
+    async function chooseNeed(choice){
+      choiceActions.hidden = true;
+      addChatMessage(choice === 'A' ? '我想直接跟老師操作' : '我想先自己研究看看', 'user');
+      await wait(700);
+      if(choice === 'A'){
+        await assistantSay('沒問題😊\n我直接邀請您加入老師的 VIP 群組。\n老師每天都會在群組即時分享盤勢和操作策略。', 500);
+      }else{
+        await assistantSay('其實很多學員一開始也是這樣想😊\n老師不會強迫大家跟單。\n您也可以先進 VIP 群觀察大家每天怎麼分析市場、怎麼討論股票。\n等您熟悉之後，再決定要不要跟老師操作也沒關係。');
+        await assistantSay('而且群組目前免費，不懂都可以直接發問。', 500);
+      }
+      nextBtn.hidden = false;
+      nextBtn.style.display = 'block';
+      scrollChat();
+    }
+
+    choiceActions.querySelectorAll('[data-choice]').forEach(button => {
+      button.addEventListener('click', () => chooseNeed(button.dataset.choice), {once:true});
+    });
+
+    startAssistant();
   </script>
 </body>
 </html>
