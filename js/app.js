@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const go=url=>{localStorage.setItem('lastPage',location.pathname.split('/').pop());location.href=url};
-function setLang(lang){localStorage.setItem('language',lang);localStorage.setItem('lang',lang);$$('[data-lang]').forEach(el=>el.classList.toggle('active',el.dataset.lang===lang))}
+function setLang(lang){localStorage.setItem('language',lang);$$('[data-lang]').forEach(el=>el.classList.toggle('active',el.dataset.lang===lang))}
 function initLang(){const lang=localStorage.getItem('language')||localStorage.getItem('lang')||'zh';$$('[data-lang]').forEach(el=>{el.onclick=()=>{setLang(el.dataset.lang);go('scanner.html')}});$$('[data-lang]').forEach(el=>el.classList.toggle('active',el.dataset.lang===lang))}
 function hasLanguage(){return Boolean(localStorage.getItem('language'))}
 function initScanner(){if(!hasLanguage()){location.replace('index.html');return}const init=$('#aiInit'),card=$('#scannerCard');setTimeout(()=>{if(init)init.hidden=true;if(card)card.hidden=false;initCamera()},1000)}
