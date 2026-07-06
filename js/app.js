@@ -12,4 +12,4 @@ function typeMessages(messages,doneSelector,options={}){const box=$('#chatBox');
 function moneyAnim(done){const el=$('#money');if(!el){if(done)done();return}const vals=[10000,12580,13920,15640];let i=0;function step(){el.textContent='NT$'+vals[i].toLocaleString();if(i<vals.length-1){i++;setTimeout(step,1200)}else if(done){done()}}step()}
 function initProfitAnimation(){const btn=$('#withdrawBtn');if(btn)btn.hidden=true;moneyAnim(()=>{setTimeout(()=>{if(btn)btn.hidden=false},1600)})}
 function chooseQuiz(ans){go(ans==='A'?'scene01_quiz_wrong.html':'scene01_quiz_right.html')}
-if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
+if('serviceWorker' in navigator){const swUrl=new URL('../sw.js',document.currentScript.src).href;navigator.serviceWorker.register(swUrl).catch(()=>{})}
