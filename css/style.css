@@ -30,4 +30,4 @@
 .comment-preview{margin-top:8px;display:grid;gap:4px}
 .comment-preview p{margin:0;font-size:14px;color:#1c1e21;background:#f0f2f5;border-radius:14px;padding:6px 10px}
 .comment-preview b{margin-right:4px}
-.feed-shot{display:block;width:100%;aspect-ratio:16/9;background:url('../assets/scenario01-investment/images/feed_bg.webp') top/cover no-repeat}
+.feed-shot{display:block;width:100%;aspect-ratio:9/16;background:url('../assets/scenario01-investment/images/feed_bg.webp') top/cover no-repeat}
