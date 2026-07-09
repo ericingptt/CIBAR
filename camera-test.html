@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="css/style.css">
+  <title>WebAR 相機測試工具</title>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="brand">WebAR 相機測試工具</div>
+      <a class="home-link" href="index.html">返回首頁</a>
+    </div>
+    <section class="card">
+      <h2>相機診斷</h2>
+      <p class="mini" id="camStatus">相機啟動中……</p>
+      <div class="scanner">
+        <video id="camVideo" class="camera" autoplay playsinline muted></video>
+      </div>
+      <p class="mini">解析度（videoWidth x videoHeight）：<span id="camRes">-</span></p>
+      <p class="mini cam-detail">目前 constraints：<span id="camConstraints">-</span></p>
+      <div class="btns">
+        <button class="btn secondary" id="restartBtn" type="button">重新啟動相機</button>
+        <button class="btn" id="captureBtn" type="button">拍照測試</button>
+      </div>
+      <div id="snapshotWrap" hidden>
+        <p class="mini">截圖結果：</p>
+        <canvas id="camCanvas"></canvas>
+      </div>
+    </section>
+  </main>
+  <script>
+    (function(){
+      var video = document.getElementById('camVideo');
+      var statusEl = document.getElementById('camStatus');
+      var resEl = document.getElementById('camRes');
+      var constraintsEl = document.getElementById('camConstraints');
+      var restartBtn = document.getElementById('restartBtn');
+      var captureBtn = document.getElementById('captureBtn');
+      var snapshotWrap = document.getElementById('snapshotWrap');
+      var canvas = document.getElementById('camCanvas');
+      var currentStream = null;
+
+      function stopStream(){
+        if(currentStream){
+          currentStream.getTracks().forEach(function(t){ t.stop(); });
+          currentStream = null;
+        }
+      }
+
+      function waitForMetadata(){
+        return new Promise(function(resolve){
+          if(video.readyState >= 1) return resolve();
+          video.onloadedmetadata = function(){ resolve(); };
+        });
+      }
+
+      async function startCamera(){
+        stopStream();
+        snapshotWrap.hidden = true;
+        statusEl.textContent = '相機啟動中……';
+        statusEl.className = 'mini';
+        resEl.textContent = '-';
+        constraintsEl.textContent = '-';
+
+        var attempts = [
+          {video:{facingMode:{exact:'environment'}}, audio:false},
+          {video:{facingMode:'environment'}, audio:false},
+          {video:true, audio:false}
+        ];
+        var lastError = null;
+        for(var i = 0; i < attempts.length; i++){
+          var constraints = attempts[i];
+          try{
+            var stream = await navigator.mediaDevices.getUserMedia(constraints);
+            currentStream = stream;
+            video.srcObject = stream;
+            constraintsEl.textContent = JSON.stringify(constraints);
+            await waitForMetadata();
+            statusEl.textContent = '相機啟動成功';
+            statusEl.className = 'mini ok';
+            resEl.textContent = video.videoWidth + ' x ' + video.videoHeight;
+            return;
+          }catch(err){
+            lastError = err;
+          }
+        }
+        statusEl.textContent = '相機啟動失敗：' + (lastError ? (lastError.message || lastError.name) : '未知錯誤');
+        statusEl.className = 'mini danger';
+      }
+
+      function capturePhoto(){
+        if(!video.videoWidth){
+          statusEl.textContent = '尚未取得畫面，無法拍照';
+          statusEl.className = 'mini danger';
+          return;
+        }
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        snapshotWrap.hidden = false;
+      }
+
+      restartBtn.addEventListener('click', startCamera);
+      captureBtn.addEventListener('click', capturePhoto);
+      window.addEventListener('pagehide', stopStream);
+
+      startCamera();
+    })();
+  </script>
+</body>
+</html>
