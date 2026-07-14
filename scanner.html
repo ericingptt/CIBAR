@@ -18,8 +18,13 @@
       <p>可掃描桌上真實物件，也可掃描背板上的對應圖案。第一版先用測試按鈕模擬辨識結果。</p>
       <div class="scanner">
         <video id="camera" class="camera" autoplay playsinline muted></video>
+        <canvas id="detectionCanvas" class="detection-overlay"></canvas>
         <div class="scan-box"></div>
         <div class="hint" id="cameraStatus">AI 視覺線索比對中……</div>
+      </div>
+      <div class="detector-stats">
+        <p class="mini" id="detectorModelInfo">物件偵測測試（尚未啟動）</p>
+        <p class="mini">FPS：<span id="detectorFps">-</span>　單次推論：<span id="detectorInferMs">-</span> ms　偵測到：<span id="detectorCount">-</span> 個物體</p>
       </div>
       <div class="btns scenario-grid">
         <button class="btn" onclick="simulateScan('investment')">模擬掃到：假投資</button>
@@ -31,6 +36,9 @@
     </section>
   </main>
   <script src="js/app.js"></script>
-  <script>initScanner()</script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+  <script src="js/detector.js"></script>
+  <script>initScanner();initDetector()</script>
 </body>
 </html>
