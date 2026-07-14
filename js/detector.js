@@ -6,8 +6,23 @@
 const DETECTOR_MODEL_NAME = 'coco-ssd';
 const DETECTOR_MODEL_VERSION = 'lite_mobilenet_v2';
 
+// 現場微調用：低於這個信心分數的偵測結果不畫框、不顯示
+const DETECTOR_CONFIDENCE_THRESHOLD = 0.5;
+
+// 只顯示這些 coco-ssd class，其餘一律忽略；key 是 coco-ssd 的原始 class 名稱，
+// value 是畫在方框上的中文標籤。coco-ssd 80 類沒有「筆記本」，這裡先用最接近
+// 的 "book" 暫代，用來測試 pipeline，不代表最終辨識準確度。
+const DETECTOR_CLASS_LABELS = {
+  'cell phone': '手機',
+  'book': '筆記本'
+};
+
 let detectorModel = null;
 let detectorRunning = false;
+
+function filterDetectionResults(predictions){
+  return predictions.filter(p => DETECTOR_CLASS_LABELS[p.class] && p.score >= DETECTOR_CONFIDENCE_THRESHOLD);
+}
 
 function getDetectionFrame(){
   return document.getElementById('camera');
@@ -40,7 +55,7 @@ function drawDetectionResults(predictions, canvas, video){
     const [x, y, w, h] = p.bbox;
     ctx.strokeStyle = '#25d0ff';
     ctx.strokeRect(x, y, w, h);
-    const label = `${p.class} ${p.score.toFixed(2)}`;
+    const label = `${DETECTOR_CLASS_LABELS[p.class] || p.class} ${p.score.toFixed(2)}`;
     const textWidth = ctx.measureText(label).width;
     const labelY = Math.max(0, y - 20);
     ctx.fillStyle = '#25d0ff';
@@ -58,11 +73,12 @@ function startDetectorLoop(video, canvas, onStats){
     if(!detectorRunning) return;
     if(video.readyState >= 2 && !video.paused){
       const { predictions, inferMs } = await runDetectorInference(video);
-      drawDetectionResults(predictions, canvas, video);
+      const filtered = filterDetectionResults(predictions);
+      drawDetectionResults(filtered, canvas, video);
       const now = performance.now();
       const fps = now > lastFrameTime ? 1000 / (now - lastFrameTime) : 0;
       lastFrameTime = now;
-      if(onStats) onStats({ fps, inferMs, count: predictions.length });
+      if(onStats) onStats({ fps, inferMs, count: filtered.length });
     }
     requestAnimationFrame(loop);
   }
