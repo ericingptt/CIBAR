@@ -38,3 +38,11 @@
 .feed-cta{position:absolute;top:67.6%;left:72%;transform:translate(-50%,-50%);background:#1c1e21;color:#fff;font-weight:700;font-size:clamp(12px,3.2vw,28px);padding:.55em 1.3em;border-radius:2em;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,.3)}
 
 .feed-stage{padding:0;background:#f0f2f5}.feed-scroll{height:100%;overflow:auto}.feed-stage .feed-shot{max-width:60%;margin:0 auto}
+body.plain-page{overflow:auto;display:block}
+.camtest{max-width:900px;margin:0 auto;padding:22px;user-select:text;-webkit-user-select:text}
+.camtest .card{margin-bottom:18px}
+.camtest-video{margin:14px 0}
+.device-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+.device-table th,.device-table td{border:1px solid var(--line);padding:6px 8px;text-align:left;word-break:break-all}
+.device-table th{background:rgba(255,255,255,.06)}
+#streamInfo p{margin:4px 0}
