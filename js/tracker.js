@@ -4,6 +4,8 @@
 // classification. Paths/target list live in js/tracker-config.js.
 import { MindARThree } from 'mind-ar-image-three';
 
+const SCANNING_MESSAGE = '啟動相機與追蹤中……請將鏡頭對準目標圖片';
+
 let mindarThree = null;
 let trackerRunning = false;
 let navigateTriggered = false;
@@ -26,22 +28,43 @@ function createTracker(container){
   });
 }
 
-// 偵測到 target 時是否要跳轉頁面，只看 config 裡該 target 的 route 是不是 null，
-// 這裡不用列 targetIndex 的白名單，之後開通新情境只要改 js/tracker-config.js。
+// 有 route 的 target（目前是假投資）：先顯示「辨識成功」文字停留一秒，再跳轉頁面，
+// 同一次停留在這個頁面時只會跳轉一次。沒有 route 的 target（假交友、假賣家）：只顯示
+// 「偵測成功」文字、不跳轉，之後補上 route 就會自動變成會跳轉，不用改這裡的邏輯。
 function triggerNavigation(target){
-  if(navigateTriggered || !target.route) return;
+  if(navigateTriggered) return;
   navigateTriggered = true;
   const statusEl = document.getElementById('trackerStatus');
   if(statusEl) statusEl.textContent = '辨識成功：' + target.label;
   setTimeout(() => go(target.route), 1000);
 }
 
+function handleTargetFound(target){
+  targetStates[target.index] = 'found';
+  renderTargetStatus();
+  if(target.route){
+    triggerNavigation(target);
+  }else{
+    const statusEl = document.getElementById('trackerStatus');
+    if(statusEl && !navigateTriggered) statusEl.textContent = '偵測成功：' + target.label;
+  }
+}
+
+function handleTargetLost(target){
+  targetStates[target.index] = 'lost';
+  renderTargetStatus();
+  if(!target.route){
+    const statusEl = document.getElementById('trackerStatus');
+    if(statusEl && !navigateTriggered) statusEl.textContent = SCANNING_MESSAGE;
+  }
+}
+
 function setupAnchors(three){
   TRACKER_TARGETS.forEach(t => {
     const anchor = three.addAnchor(t.index);
     targetStates[t.index] = 'lost';
-    anchor.onTargetFound = () => { targetStates[t.index] = 'found'; renderTargetStatus(); triggerNavigation(t); };
-    anchor.onTargetLost = () => { targetStates[t.index] = 'lost'; renderTargetStatus(); };
+    anchor.onTargetFound = () => handleTargetFound(t);
+    anchor.onTargetLost = () => handleTargetLost(t);
   });
 }
 
@@ -80,7 +103,7 @@ async function initTracker(){
   try{
     mindarThree = createTracker(container);
     setupAnchors(mindarThree);
-    if(statusEl) statusEl.textContent = '啟動相機與追蹤中……請將鏡頭對準目標圖片';
+    if(statusEl) statusEl.textContent = SCANNING_MESSAGE;
     await startTracker(mindarThree, stats => {
       if(fpsEl) fpsEl.textContent = stats.fps.toFixed(1);
       if(latencyEl) latencyEl.textContent = stats.frameMs.toFixed(1);
