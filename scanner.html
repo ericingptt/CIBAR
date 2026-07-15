@@ -17,14 +17,15 @@
       <h2>請尋找現場可疑線索</h2>
       <p>可掃描桌上真實物件，也可掃描背板上的對應圖案。第一版先用測試按鈕模擬辨識結果。</p>
       <div class="scanner">
-        <video id="camera" class="camera" autoplay playsinline muted></video>
-        <canvas id="detectionCanvas" class="detection-overlay"></canvas>
-        <div class="scan-box"></div>
+        <div id="trackerContainer" class="tracker-container"></div>
         <div class="hint" id="cameraStatus">AI 視覺線索比對中……</div>
       </div>
-      <div class="detector-stats">
-        <p class="mini" id="detectorModelInfo">物件偵測測試（尚未啟動）</p>
-        <p class="mini">FPS：<span id="detectorFps">-</span>　單次推論：<span id="detectorInferMs">-</span> ms　偵測到：<span id="detectorCount">-</span> 個物體</p>
+      <div class="tracker-stats">
+        <p class="mini" id="trackerStatus">MindAR 尚未啟動……</p>
+      </div>
+      <div class="tracker-stats" id="trackerTargets"></div>
+      <div class="tracker-stats">
+        <p class="mini">模型：MindAR (image tracking)　FPS：<span id="trackerFps">-</span>　畫面間隔：<span id="trackerLatencyMs">-</span> ms</p>
       </div>
       <div class="btns scenario-grid">
         <button class="btn" onclick="simulateScan('investment')">模擬掃到：假投資</button>
@@ -36,9 +37,17 @@
     </section>
   </main>
   <script src="js/app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
-  <script src="js/detector.js"></script>
-  <script>initScanner();initDetector()</script>
+  <script>if(!hasLanguage()){location.replace('index.html')}</script>
+  <script src="js/tracker-config.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+      "mind-ar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+    }
+  }
+  </script>
+  <script type="module" src="js/tracker.js"></script>
 </body>
 </html>
