@@ -6,6 +6,7 @@ import { MindARThree } from 'mind-ar-image-three';
 
 let mindarThree = null;
 let trackerRunning = false;
+let navigateTriggered = false;
 const targetStates = {};
 
 function renderTargetStatus(){
@@ -25,11 +26,21 @@ function createTracker(container){
   });
 }
 
+// 偵測到 target 時是否要跳轉頁面，只看 config 裡該 target 的 route 是不是 null，
+// 這裡不用列 targetIndex 的白名單，之後開通新情境只要改 js/tracker-config.js。
+function triggerNavigation(target){
+  if(navigateTriggered || !target.route) return;
+  navigateTriggered = true;
+  const statusEl = document.getElementById('trackerStatus');
+  if(statusEl) statusEl.textContent = '辨識成功：' + target.label;
+  setTimeout(() => go(target.route), 1000);
+}
+
 function setupAnchors(three){
   TRACKER_TARGETS.forEach(t => {
     const anchor = three.addAnchor(t.index);
     targetStates[t.index] = 'lost';
-    anchor.onTargetFound = () => { targetStates[t.index] = 'found'; renderTargetStatus(); };
+    anchor.onTargetFound = () => { targetStates[t.index] = 'found'; renderTargetStatus(); triggerNavigation(t); };
     anchor.onTargetLost = () => { targetStates[t.index] = 'lost'; renderTargetStatus(); };
   });
 }
