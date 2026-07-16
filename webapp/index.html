@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>AI 防詐調查任務</title>
+    <!--
+      MindAR (used by the Scanner page) has no build-tooling-friendly npm
+      path here: its npm package pulls in a `canvas` native dependency (used
+      by its offline compiler tooling, not the browser runtime) that fails to
+      build in this environment. The browser runtime bundle itself is a real
+      ES module with no such dependency, so it's loaded the same way it was
+      on the pre-SPA static site: a native import map pointing at pinned
+      jsdelivr CDN URLs, resolved via a dynamic import() in
+      src/scanner/useTracker.js.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+          "mind-ar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
