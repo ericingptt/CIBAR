@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { createCameraSession } from './camera';
+import { getSharedCamera } from '../camera/sharedCamera';
 import { loadHandLandmarker, detectFrame } from './handLandmarker';
 import { createGestureClassifier } from './gestureClassifier';
 
@@ -12,9 +12,19 @@ export function useGesture() {
 }
 
 // Mounted once at the app root (see main.jsx), wrapping the router, so the
-// camera + model survive every route change - React Router only unmounts the
-// matched route's own subtree, never its ancestors. Broadcasts already
-// edge-triggered discrete gesture events; see gestureClassifier.js for why.
+// hand-tracking model survives every route change - React Router only
+// unmounts the matched route's own subtree, never its ancestors. Broadcasts
+// already edge-triggered discrete gesture events; see gestureClassifier.js
+// for why.
+//
+// Reads from getSharedCamera() (src/camera/sharedCamera.js) rather than
+// opening its own getUserMedia() stream - the scanner page's MindAR tracker
+// reads from that same shared session, so there is only ever one camera
+// connection for the whole app. Because of that, pause()/resume() here only
+// stop/restart this module's own per-frame hand-detection inference (to
+// save CPU on pages that don't need gestures) - they never touch the shared
+// camera stream itself, since another consumer (MindAR) may still be using
+// it.
 export function GestureProvider({ children }) {
   const [gesture, setGesture] = useState('idle');
   const [seq, setSeq] = useState(0);
@@ -22,29 +32,21 @@ export function GestureProvider({ children }) {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(null);
   const [fps, setFps] = useState(0);
+  const [cameraInfo, setCameraInfo] = useState(null);
 
-  const pauseImplRef = useRef(() => {});
-  const resumeImplRef = useRef(() => {});
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     let rafId = null;
     let landmarker = null;
     let lastFrameTime = performance.now();
-    let paused = false;
-    const camera = createCameraSession();
     const classifier = createGestureClassifier();
-    // Read from a ref rather than the init() closure's local variable so
-    // resume() (which re-acquires a fresh <video> element) is picked up by
-    // the already-running detection loop instead of it reading a stale,
-    // detached element.
-    const videoElRef = { current: null };
 
-    function tick() {
+    function tick(videoEl) {
       if (cancelled) return;
-      rafId = requestAnimationFrame(tick);
-      const videoEl = videoElRef.current;
-      if (paused || !landmarker || !videoEl || videoEl.readyState < 2) return;
+      rafId = requestAnimationFrame(() => tick(videoEl));
+      if (pausedRef.current || !landmarker || videoEl.readyState < 2) return;
 
       const now = performance.now();
       const frameMs = now - lastFrameTime;
@@ -60,45 +62,26 @@ export function GestureProvider({ children }) {
       if (next !== 'idle') setSeq((s) => s + 1);
     }
 
-    async function acquireCamera() {
-      const { videoEl } = await camera.start({ facingMode: 'user' });
-      videoElRef.current = videoEl;
-    }
-
     (async () => {
       try {
-        const [, hl] = await Promise.all([acquireCamera(), loadHandLandmarker()]);
+        const [{ videoEl, device }, hl] = await Promise.all([getSharedCamera(), loadHandLandmarker()]);
         if (cancelled) return;
         landmarker = hl;
+        setCameraInfo({ label: device.label, deviceId: device.deviceId });
         setReady(true);
+        rafId = requestAnimationFrame(() => tick(videoEl));
       } catch (e) {
         if (!cancelled) setError(e && e.message ? e.message : String(e));
       }
     })();
 
-    rafId = requestAnimationFrame(tick);
-
-    pauseImplRef.current = () => {
-      paused = true;
-      camera.pause();
-      videoElRef.current = null;
-      classifier.reset();
-    };
-    resumeImplRef.current = async () => {
-      if (cancelled) return;
-      paused = false;
-      try {
-        await acquireCamera();
-      } catch (e) {
-        setError(e && e.message ? e.message : String(e));
-      }
-    };
-
     return () => {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
-      camera.stop();
       landmarker?.close?.();
+      // Deliberately NOT stopping the shared camera here: it's owned by
+      // sharedCamera.js and may still be in use by the scanner page's
+      // MindAR tracker.
     };
   }, []);
 
@@ -109,8 +92,14 @@ export function GestureProvider({ children }) {
     ready,
     error,
     fps,
-    pause: () => pauseImplRef.current(),
-    resume: () => resumeImplRef.current(),
+    cameraLabel: cameraInfo?.label ?? null,
+    cameraDeviceId: cameraInfo?.deviceId ?? null,
+    pause: () => {
+      pausedRef.current = true;
+    },
+    resume: () => {
+      pausedRef.current = false;
+    },
   };
 
   return <GestureContext.Provider value={value}>{children}</GestureContext.Provider>;
