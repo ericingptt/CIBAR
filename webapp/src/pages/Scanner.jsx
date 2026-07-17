@@ -19,7 +19,7 @@ export function Scanner() {
   const navigate = useNavigate();
   const containerRef = useRef(null);
   const [cameraStatus, setCameraStatus] = useState('AI 視覺線索比對中……');
-  const { status, targetStates, stats } = useTracker(containerRef);
+  const { status, targetStates, stats, cameraLabel, targetsLoaded } = useTracker(containerRef);
 
   function simulateScan(scenario) {
     const target = SIMULATE_SCAN_MAP[scenario];
@@ -39,6 +39,15 @@ export function Scanner() {
         </div>
         <div className="tracker-stats">
           <p className="mini">{status}</p>
+          <p className="mini">
+            攝影機來源：{cameraLabel || '尚未取得'}
+          </p>
+          <p className="mini">
+            Target 檔案：
+            {targetsLoaded === null && '讀取中……'}
+            {targetsLoaded === 'error' && '❌ 讀取失敗（見上方錯誤訊息）'}
+            {typeof targetsLoaded === 'number' && `✅ 已載入 ${targetsLoaded} 個 target`}
+          </p>
         </div>
         <div className="tracker-stats">
           {TRACKER_TARGETS.map((t) => {

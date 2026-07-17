@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGesture } from './GestureProvider';
+import { CameraPicker } from '../camera/CameraPicker';
 
 const GESTURE_LABELS = {
   idle: 'idle',
@@ -13,7 +14,7 @@ const GESTURE_LABELS = {
 // keyboard) plus a keyboard shortcut for desktop dev testing.
 export function DebugPanel() {
   const [open, setOpen] = useState(false);
-  const { gesture, handsDetected, ready, error, fps } = useGesture();
+  const { gesture, handsDetected, ready, error, fps, cameraLabel } = useGesture();
 
   // Window-level listener (rather than an onKeyDown prop) so the shortcut
   // works regardless of what currently has focus - useful for desktop dev
@@ -62,11 +63,13 @@ export function DebugPanel() {
             minWidth: 220,
           }}
         >
-          <div>狀態：{error ? '錯誤' : ready ? '運作中' : '啟動中……'}</div>
+          <div>手勢模型狀態：{error ? '❌ 錯誤' : ready ? '✅ 運作中' : '啟動中……'}</div>
           {error && <div style={{ color: '#ff4d6d' }}>錯誤：{error}</div>}
+          <div>攝影機來源：{cameraLabel || '尚未取得'}</div>
           <div>偵測到手：{handsDetected} 隻</div>
           <div>手勢狀態：{GESTURE_LABELS[gesture] || gesture}</div>
           <div>推論 FPS：{fps.toFixed(1)}</div>
+          <CameraPicker />
         </div>
       )}
     </div>
