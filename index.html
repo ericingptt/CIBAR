@@ -3,45 +3,81 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="manifest" href="manifest.json?v=20260720-1">
-  <link rel="stylesheet" href="css/style.css?v=20260720-1">
+  <link rel="manifest" href="manifest.json?v=20260720-2">
+  <link rel="stylesheet" href="css/style.css?v=20260720-2">
   <title>AI 防詐調查任務</title>
 </head>
-<body>
-  <main class="app ar-stage">
-    <div class="topbar">
-      <div class="brand">CIB AR ANTI-FRAUD</div>
-    </div>
-    <section class="hero">
-      <p class="mini">刑事警察局 AR 反詐騙教育館</p>
-      <h1>AI 防詐調查任務</h1>
-      <p>你將化身反詐小刑警，透過 AR 眼鏡尋找現場可疑線索。掃描桌上物件或背板圖案，進入對應詐騙情境。</p>
-      <h2>請選擇語言</h2>
-      <div class="lang-grid" aria-label="語言選擇" id="languageChoices">
-        <button class="choice" data-lang="zh">🇹🇼 中文<span class="chevron" aria-hidden="true">›</span></button>
-        <button class="choice" data-lang="en">🇺🇸 English<span class="chevron" aria-hidden="true">›</span></button>
-        <button class="choice" data-lang="jp">🇯🇵 日本語<span class="chevron" aria-hidden="true">›</span></button>
+<body class="gesture-spa">
+  <video id="tutorialVideo" class="tutorial-video" autoplay playsinline muted></video>
+  <main class="app ar-stage spa-stage">
+    <div class="topbar"><div class="brand">CIB AR ANTI-FRAUD</div><div class="state-pill" id="statePill">idle</div></div>
+
+    <section class="gesture-view active" data-view="tutorial-intro">
+      <div class="hero intro-panel">
+        <p class="mini">刑事警察局 AR 反詐騙教育館 / AR Anti-Fraud Mission / AR詐欺防止ミッション</p>
+        <h1>AI 防詐調查任務</h1>
+        <div class="tri-copy">
+          <p class="zh">開始前會先教您用手勢滾動與選取，完成後才會進入語言選擇。</p>
+          <p>Before choosing a language, learn the scroll and select gestures.</p>
+          <p>言語を選ぶ前に、スクロールと選択の操作を練習します。</p>
+        </div>
+        <div class="privacy tri-copy">
+          <p>鏡頭影像僅用於即時手勢辨識，不會錄影或上傳。</p>
+          <p>Camera images are used only for real-time gesture recognition.<br>No video will be recorded or uploaded.</p>
+          <p>カメラ映像はリアルタイムのジェスチャー認識にのみ使用され、<br>録画やアップロードは行われません。</p>
+        </div>
+        <button class="btn start-gesture" id="startTutorial" type="button">開始手勢教學<br><span>Start Gesture Tutorial</span><br><span>ジェスチャー操作を開始</span></button>
+        <button class="btn secondary subtle" id="resumePrompt" type="button" hidden>已完成手勢教學，是否重新教學？ / Tutorial completed. Restart?</button>
       </div>
     </section>
-    <section class="card calibration-card" id="calibrationPanel" hidden>
-      <p class="mini">操作校正</p>
-      <h2>開啟鏡頭並校正手勢</h2>
-      <p>鏡頭影像僅用於即時手勢辨識，不會錄影或上傳。</p>
-      <div class="calibration-view">
-        <div class="hand-frame"><span></span></div>
-        <div class="calibration-check" id="calibrationCheck" hidden>✓</div>
-      </div>
-      <p class="mini calibration-step" id="calibrationStep"></p>
-      <p id="calibrationStatus">請點擊下方按鈕，瀏覽器才會要求鏡頭權限。</p>
-      <div class="btns">
-        <button class="btn" id="startCalibration" type="button">開啟鏡頭並開始校正</button>
-        <button class="btn secondary" id="skipCalibration" type="button" hidden>略過校正並開啟掃描</button>
+
+    <section class="gesture-view camera-view" data-view="waiting-for-hand">
+      <div class="hand-frame tutorial-frame" id="handFrame"><span></span></div>
+      <div class="tutorial-card bottom-card">
+        <div class="tri-title"><h2>請將一隻手放入框內</h2><p>Place one hand inside the frame</p><p>枠の中に片手を入れてください</p></div>
+        <p class="status-line" id="tutorialStatus">等待鏡頭與手部辨識……</p>
       </div>
     </section>
+
+    <section class="gesture-view camera-view" data-view="scroll-tutorial">
+      <div class="hand-frame tutorial-frame" id="scrollFrame"><span class="hand-anim"></span></div>
+      <div class="tutorial-card side-card">
+        <p class="mini">步驟 1 / 2</p><h2>將手掌上下移動，控制畫面滾動。</h2>
+        <p>請先向下移動一次，再向上移動一次。</p><p>Move your hand up and down to scroll.<br>First move downward, then move upward.</p><p>手を上下に動かして画面をスクロールします。<br>最初に下へ動かし、その後上へ動かしてください。</p>
+        <div class="progress-checks"><span id="downCheck">□ Down / 下</span><span id="upCheck">□ Up / 上</span></div>
+        <p class="retry" id="scrollRetry" hidden>沒有偵測到動作，請再試一次<br>Gesture not detected. Please try again.<br>操作を認識できませんでした。もう一度お試しください。</p>
+      </div>
+    </section>
+
+    <section class="gesture-view camera-view" data-view="select-tutorial">
+      <div class="gesture-cursor" id="gestureCursor"></div>
+      <button class="test-select-card" id="testSelect" type="button" tabindex="-1">測試選取<br><span>TEST SELECT</span><br><span>選択テスト</span></button>
+      <div class="tutorial-card side-card">
+        <p class="mini">步驟 2 / 2</p><h2>用拇指和食指捏合，進行選取。</h2>
+        <p>請對準中央測試按鈕並捏合一次。</p><p>Pinch your thumb and index finger to select.<br>Aim at the test button and pinch once.</p><p>親指と人差し指をつまむと選択できます。<br>中央のテストボタンに合わせて一度つまんでください。</p>
+      </div>
+    </section>
+
+    <section class="gesture-view" data-view="tutorial-complete">
+      <div class="hero complete-panel"><div class="big-check">✓</div><h2>手勢教學完成</h2><p>Gesture tutorial completed</p><p>ジェスチャー操作の準備が完了しました</p><div class="done-list"><p>✓ 上下移動：滾動畫面</p><p>✓ Move up and down: Scroll</p><p>✓ 上下移動：スクロール</p><p>✓ 拇指與食指捏合：選取</p><p>✓ Pinch thumb and index finger: Select</p><p>✓ 親指と人差し指をつまむ：選択</p></div></div>
+    </section>
+
+    <section class="gesture-view" data-view="language-selection">
+      <div class="gesture-cursor" id="languageCursor"></div>
+      <div class="hero language-panel"><h2>請用手勢選擇語言</h2><p>Move hand to hover, pinch to confirm. 上下移動可切換選項。</p><div class="language-cards" id="languageCards"><button data-select-lang="zh">繁體中文</button><button data-select-lang="en">English</button><button data-select-lang="jp">日本語</button></div><p id="languageConfirm" class="confirm-text"></p><button class="touch-fallback" id="touchFallback" type="button">無法使用手勢？ 改用觸控操作<br>Gesture not working? Use touch controls<br>ジェスチャーを使用できませんか？ タッチ操作に切り替える</button></div>
+    </section>
+
+    <section class="gesture-view" data-view="scanning">
+      <div class="card scanner-card"><h2>請尋找現場可疑線索</h2><p>語言確認後進入掃描；MindAR 掃描頁會接管單一相機來源，避免與 MediaPipe 同時搶鏡頭。</p><div class="btns scenario-grid dev-sim"><button class="btn" onclick="simulateScan('investment')">模擬掃到：假投資</button><button class="btn" onclick="simulateScan('romance')">模擬掃到：假交友</button><button class="btn" onclick="simulateScan('police')">模擬掃到：假檢警</button><button class="btn" onclick="simulateScan('shopping')">模擬掃到：假買家</button><button class="btn" onclick="simulateScan('atm')">模擬掃到：解除分期</button></div><a class="btn secondary" href="scanner.html">開啟 MindAR 掃描</a></div>
+    </section>
+
+    <div class="success-overlay" id="successOverlay" hidden><div>✓</div><p id="successText"></p></div>
+    <div class="error-actions"><button class="btn secondary" id="retryCamera" type="button">重新開啟鏡頭</button><button class="btn secondary" id="restartTutorial" type="button">回到教學首頁</button></div>
   </main>
-  <script src="js/camera-manager.js?v=20260720-1"></script>
-  <script src="js/gesture-calibration.js?v=20260720-1"></script>
-  <script src="js/app.js?v=20260720-1"></script>
-  <script>initLang();initGestureCalibration()</script>
+  <script src="js/camera-manager.js?v=20260720-2"></script>
+  <script src="js/gesture-controller.js?v=20260720-2"></script>
+  <script src="js/tutorial-controller.js?v=20260720-2"></script>
+  <script src="js/app.js?v=20260720-2"></script>
+  <script>initGestureTutorial()</script>
 </body>
 </html>
