@@ -10,7 +10,7 @@ export function PlatformRegister() {
 
   return (
     <>
-      <TopBar brand="A.I. Global Capital" homeHref="/" />
+      <TopBar brand="A.I. Global Capital" />
       <Platform>
         <h2>會員註冊</h2>
         <Stat label="手機號碼" value="09xx-xxx-xxx" />

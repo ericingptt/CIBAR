@@ -33,7 +33,7 @@ export function VipGroup() {
 
   return (
     <>
-      <TopBar brand="陳老師 AI 飆股｜321 人" homeHref="/" />
+      <TopBar brand="陳老師 AI 飆股｜321 人" />
       <Chat variant="vip-chat">
         {rendered.map((m, i) => (
           <Message key={i} type={m.type}>{m.text}</Message>

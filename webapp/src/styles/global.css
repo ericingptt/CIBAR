@@ -33,3 +33,14 @@
 .mindar-ui-scanning{pointer-events:none}
 .tracker-stats{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.04)}
 .tracker-stats p{margin:4px 0}
+
+.gesture-intro-steps{display:grid;gap:14px;margin-top:18px}
+.gesture-intro-stage{opacity:.45;transform:scale(.98);transition:opacity .25s,transform .25s,border-color .25s}
+.gesture-intro-stage.current{opacity:1;transform:scale(1);border-color:var(--accent)}
+.gesture-intro-stage.done{opacity:1;transform:scale(1);border-color:var(--ok)}
+.gesture-intro-icon{font-size:42px;line-height:1;margin-bottom:8px;animation:gestureIconPulse 1.6s ease-in-out infinite}
+.gesture-intro-stage.done .gesture-intro-icon{animation:none}
+.gesture-intro-success{color:var(--ok);font-weight:800;font-size:20px}
+.gesture-intro-feedback{margin-top:18px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.04)}
+.gesture-intro-feedback p{margin:4px 0}
+@keyframes gestureIconPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}

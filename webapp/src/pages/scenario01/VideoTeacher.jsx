@@ -11,7 +11,7 @@ export function VideoTeacher() {
 
   return (
     <>
-      <TopBar brand="30 天掌握飆股趨勢" homeHref="/" />
+      <TopBar brand="30 天掌握飆股趨勢" />
       <Card>
         <div className="video-box">
           <div>
