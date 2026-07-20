@@ -8,12 +8,12 @@
     async init(){if(this.landmarker)return;const vision=await import(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VISION_VERSION}/vision_bundle.mjs`);const fileset=await vision.FilesetResolver.forVisionTasks(WASM_ROOT);this.landmarker=await vision.HandLandmarker.createFromOptions(fileset,{baseOptions:{modelAssetPath:MODEL_URL},runningMode:'VIDEO',numHands:1});}
     start(){cancelAnimationFrame(this.raf);this.loop();}
     stop(){cancelAnimationFrame(this.raf);this.raf=0;}
-    setMode(mode){this.mode=mode;this.resetMotion();}
+    setMode(mode){this.mode=mode;this.resetMotion();this.smoothCursor=null;}
     resetMotion(){this.baseY=null;this.dirFrames=0;this.lastDir=null;this.pinchFrames=0;this.pinchWasDown=false;}
     inFrame(p){const r=this.frameRect;return p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h;}
     palm(l){const pts=[l[0],l[5],l[9],l[13],l[17]].filter(Boolean);return pts.reduce((a,p)=>({x:a.x+p.x/pts.length,y:a.y+p.y/pts.length}),{x:0,y:0});}
     smooth(prev,p,a=.28){return prev?{x:prev.x+(p.x-prev.x)*a,y:prev.y+(p.y-prev.y)*a}:p;}
-    cursorPoint(l){const p=l[8];const x=(1-p.x)*innerWidth,y=p.y*innerHeight;return {x,y};}
+    cursorPoint(l){const p=l[8];const x=p.x*innerWidth,y=p.y*innerHeight;return {x,y};}
     pinchDistance(l){return Math.hypot(l[4].x-l[8].x,l[4].y-l[8].y);}
     emit(name,detail={}){this.dispatchEvent(new CustomEvent(name,{detail}));}
     updateHover(point,targets){let hit=null;(targets||[]).forEach(el=>{const r=el.getBoundingClientRect();if(point.x>=r.left&&point.x<=r.right&&point.y>=r.top&&point.y<=r.bottom)hit=el;el.classList.toggle('gesture-hover',false);});if(hit)hit.classList.add('gesture-hover');this.hoverEl=hit;return hit;}

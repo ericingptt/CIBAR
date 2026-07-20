@@ -1,4 +1,18 @@
-// MindAR image-tracking pipeline. MindAR 1.2.5 does not expose a stable public option to pass an existing MediaStream; this scanner page therefore lets MindAR own the single active scanner camera, while CameraManager is used by calibration and scenario pages. The calibration loop is destroyed by navigation before this module starts, so MediaPipe and MindAR never run competing getUserMedia calls on the same page.
+// MindAR image-tracking pipeline.
+//
+// Gesture pause/resume, honestly: this is a classic multi-page site — navigating here from index.html
+// is a real <a href>/location.href navigation, which fully tears down the previous page's JS context
+// (including any running GestureController + MediaPipe loop) before this script ever runs. So there is
+// no explicit "pause" handoff to describe; by the time this file executes, nothing from the tutorial
+// page is still running to pause. This page deliberately never loads gesture-controller.js at all, so
+// scroll/select gestures do not work here — because MindAR 1.2.5 exposes no public API to accept an
+// already-open MediaStream, and running MediaPipe's own getUserMedia() call alongside MindAR's would
+// risk two concurrent opens of the same physical camera. Leaving this page via any real navigation
+// (e.g. the "首頁" link) loads a fresh page that reinitializes CameraManager + GestureController from
+// scratch — that fresh load, not a persisted session, is how gesture control "resumes" elsewhere.
+// CameraManager.stopCamera() below is a defensive no-op under this architecture (a freshly loaded page's
+// CameraManager never has a live stream yet); it only matters if this script is ever reached without a
+// full navigation in between.
 // Replaces the earlier coco-ssd object
 // detector: this scenario recognizes a known, closed set of images/props, so
 // feature-point image tracking is the right tool instead of object
