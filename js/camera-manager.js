@@ -1,7 +1,7 @@
 (function(){
   const CameraManager={stream:null,status:'idle',listeners:new Set(),videoEls:new Set(),rootPrefix:''};
   const labels={NotAllowedError:'鏡頭權限已被拒絕，請到瀏覽器設定重新允許。',NotFoundError:'找不到可用鏡頭，請確認裝置已連接相機。',NotReadableError:'鏡頭目前被其他應用程式使用，請關閉其他相機程式後重試。',OverconstrainedError:'找不到符合條件的後鏡頭，正在改用可用鏡頭。',SecurityError:'目前頁面不允許使用鏡頭，請確認使用 HTTPS。'};
-  function emit(message,type='info'){CameraManager.status=type;CameraManager.listeners.forEach(fn=>fn({message,type}));document.querySelectorAll('[data-camera-status]').forEach(el=>el.textContent=message)}
+  function emit(message,type='info'){CameraManager.status=type;CameraManager.listeners.forEach(fn=>fn({message,type}));document.querySelectorAll('[data-camera-status]').forEach(el=>{el.textContent=message;el.classList.toggle('camera-state-visible',type==='error'||type==='warning')})}
   function readable(err){return labels[err&&err.name]||'鏡頭啟動失敗，請重新整理或重新授權。'}
   function live(){return CameraManager.stream&&CameraManager.stream.getVideoTracks().some(t=>t.readyState==='live')}
   async function request(constraints){return navigator.mediaDevices.getUserMedia(constraints)}
