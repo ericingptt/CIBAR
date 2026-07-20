@@ -1,4 +1,5 @@
-// MindAR image-tracking pipeline test. Replaces the earlier coco-ssd object
+// MindAR image-tracking pipeline. MindAR 1.2.5 does not expose a stable public option to pass an existing MediaStream; this scanner page therefore lets MindAR own the single active scanner camera, while CameraManager is used by calibration and scenario pages. The calibration loop is destroyed by navigation before this module starts, so MediaPipe and MindAR never run competing getUserMedia calls on the same page.
+// Replaces the earlier coco-ssd object
 // detector: this scenario recognizes a known, closed set of images/props, so
 // feature-point image tracking is the right tool instead of object
 // classification. Paths/target list live in js/tracker-config.js.
@@ -100,6 +101,7 @@ async function initTracker(){
 
   renderTargetStatus();
   if(statusEl) statusEl.textContent = 'MindAR 初始化中……';
+  if(window.CameraManager && CameraManager.getStream()) CameraManager.stopCamera();
   try{
     mindarThree = createTracker(container);
     setupAnchors(mindarThree);
@@ -109,7 +111,7 @@ async function initTracker(){
       if(latencyEl) latencyEl.textContent = stats.frameMs.toFixed(1);
     });
   }catch(e){
-    if(statusEl) statusEl.textContent = 'MindAR 啟動失敗：' + (e && e.message ? e.message : e);
+    if(statusEl) statusEl.textContent = 'MindAR 啟動失敗：鏡頭或影像追蹤啟動失敗，請確認已允許鏡頭權限後重新整理。';
   }
 }
 
