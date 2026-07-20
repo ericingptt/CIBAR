@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="manifest" href="manifest.json?v=20260720-2">
-  <link rel="stylesheet" href="css/style.css?v=20260720-2">
+  <link rel="manifest" href="manifest.json?v=20260720-3">
+  <link rel="stylesheet" href="css/style.css?v=20260720-3">
   <title>AI 防詐調查任務</title>
 </head>
 <body class="gesture-spa">
@@ -36,6 +36,7 @@
       <div class="tutorial-card bottom-card">
         <div class="tri-title"><h2>請將一隻手放入框內</h2><p>Place one hand inside the frame</p><p>枠の中に片手を入れてください</p></div>
         <p class="status-line" id="tutorialStatus">等待鏡頭與手部辨識……</p>
+        <p class="retry" id="handRetry" hidden>沒有偵測到動作，請再試一次<br>Gesture not detected. Please try again.<br>操作を認識できませんでした。もう一度お試しください。<br><button class="btn secondary retry-btn" id="handRetryBtn" type="button">重新偵測手部 / Retry hand detection / 手の検出をやり直す</button></p>
       </div>
     </section>
 
@@ -45,7 +46,7 @@
         <p class="mini">步驟 1 / 2</p><h2>將手掌上下移動，控制畫面滾動。</h2>
         <p>請先向下移動一次，再向上移動一次。</p><p>Move your hand up and down to scroll.<br>First move downward, then move upward.</p><p>手を上下に動かして画面をスクロールします。<br>最初に下へ動かし、その後上へ動かしてください。</p>
         <div class="progress-checks"><span id="downCheck">□ Down / 下</span><span id="upCheck">□ Up / 上</span></div>
-        <p class="retry" id="scrollRetry" hidden>沒有偵測到動作，請再試一次<br>Gesture not detected. Please try again.<br>操作を認識できませんでした。もう一度お試しください。</p>
+        <p class="retry" id="scrollRetry" hidden>沒有偵測到動作，請再試一次<br>Gesture not detected. Please try again.<br>操作を認識できませんでした。もう一度お試しください。<br><button class="btn secondary retry-btn" id="scrollRetryBtn" type="button">重新滾動教學 / Restart scroll tutorial / スクロール練習をやり直す</button></p>
       </div>
     </section>
 
@@ -55,6 +56,7 @@
       <div class="tutorial-card side-card">
         <p class="mini">步驟 2 / 2</p><h2>用拇指和食指捏合，進行選取。</h2>
         <p>請對準中央測試按鈕並捏合一次。</p><p>Pinch your thumb and index finger to select.<br>Aim at the test button and pinch once.</p><p>親指と人差し指をつまむと選択できます。<br>中央のテストボタンに合わせて一度つまんでください。</p>
+        <p class="retry" id="selectRetry" hidden>沒有偵測到動作，請再試一次<br>Gesture not detected. Please try again.<br>操作を認識できませんでした。もう一度お試しください。<br><button class="btn secondary retry-btn" id="selectRetryBtn" type="button">重新選取教學 / Restart select tutorial / 選択練習をやり直す</button></p>
       </div>
     </section>
 
@@ -74,10 +76,10 @@
     <div class="success-overlay" id="successOverlay" hidden><div>✓</div><p id="successText"></p></div>
     <div class="error-actions"><button class="btn secondary" id="retryCamera" type="button">重新開啟鏡頭</button><button class="btn secondary" id="restartTutorial" type="button">回到教學首頁</button></div>
   </main>
-  <script src="js/camera-manager.js?v=20260720-2"></script>
-  <script src="js/gesture-controller.js?v=20260720-2"></script>
-  <script src="js/tutorial-controller.js?v=20260720-2"></script>
-  <script src="js/app.js?v=20260720-2"></script>
+  <script src="js/camera-manager.js?v=20260720-3"></script>
+  <script src="js/gesture-controller.js?v=20260720-3"></script>
+  <script src="js/tutorial-controller.js?v=20260720-3"></script>
+  <script src="js/app.js?v=20260720-3"></script>
   <script>initGestureTutorial()</script>
 </body>
 </html>

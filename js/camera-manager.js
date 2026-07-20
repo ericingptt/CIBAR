@@ -19,7 +19,7 @@
     localStorage.setItem('cameraPermissionGranted','true');emit('鏡頭已啟動');return CameraManager.stream;
   };
   CameraManager.getStream=()=>CameraManager.stream;
-  CameraManager.attachVideo=async function(video){if(!video)return null;CameraManager.videoEls.add(video);video.autoplay=true;video.playsInline=true;video.muted=true;if(CameraManager.stream)video.srcObject=CameraManager.stream;try{await video.play()}catch(e){}return video};
+  CameraManager.attachVideo=async function(video){if(!video)return null;CameraManager.videoEls.add(video);video.autoplay=true;video.playsInline=true;video.muted=true;if(CameraManager.stream){video.srcObject=CameraManager.stream;try{await video.play()}catch(e){}}return video};
   CameraManager.stopCamera=function(){if(CameraManager.stream){CameraManager.stream.getTracks().forEach(t=>t.stop())}CameraManager.stream=null;CameraManager.videoEls.forEach(v=>v.srcObject=null);emit('鏡頭已停止','idle')};
   CameraManager.restartCamera=async function(){CameraManager.stopCamera();return CameraManager.startCamera()};
   CameraManager.onStatus=fn=>{CameraManager.listeners.add(fn);return()=>CameraManager.listeners.delete(fn)};
