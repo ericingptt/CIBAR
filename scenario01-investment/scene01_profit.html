@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=20260720-1">
   <title>帳面獲利</title>
 </head>
-<body>
+<body class="camera-page">
   <main class="app ar-stage">
     <div class="topbar">
       <div class="brand">資產總覽</div>
@@ -50,7 +50,7 @@
       <button class="btn withdraw-btn" id="withdrawBtn" onclick="go('scene01_withdraw_fail.html')" hidden>申請出金</button>
     </section>
   </main>
-  <script src="../js/app.js"></script>
+  <script src="../js/camera-manager.js?v=20260720-1"></script><script src="../js/app.js?v=20260720-1"></script><script>initPageCamera()</script>
   <script>initProfitAnimation()</script>
 </body>
 </html>
