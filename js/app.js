@@ -37,7 +37,7 @@ function moneyAnim(done){
 }
 function initProfitAnimation(){const btn=$('#withdrawBtn');if(btn)btn.hidden=true;moneyAnim(()=>{if(btn)btn.hidden=false})}
 function chooseQuiz(ans){go(ans==='A'?'scene01_quiz_wrong.html':'scene01_quiz_right.html')}
-if('serviceWorker' in navigator){const swUrl=new URL('../sw.js',document.currentScript.src).href;navigator.serviceWorker.register(swUrl+'?v=20260720-9').catch(()=>{})}
+if('serviceWorker' in navigator){const swUrl=new URL('../sw.js',document.currentScript.src).href;navigator.serviceWorker.register(swUrl+'?v=20260720-10').catch(()=>{})}
 // Target .ar-stage by class, not "first non-script child of body" — CameraManager.ensureCameraLayer()
 // prepends the small camera PIP layer to <body>, which would otherwise become the new first child and
 // get mistaken for the stage, blowing it up to fill the viewport (the actual root cause of the
