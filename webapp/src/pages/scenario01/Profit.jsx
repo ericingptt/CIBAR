@@ -23,7 +23,7 @@ export function Profit() {
 
   return (
     <>
-      <TopBar brand="資產總覽" homeHref="/" />
+      <TopBar brand="資產總覽" />
       <Platform variant="profit-platform">
         <p>投入本金：NT$10,000</p>
         <div className="asset-row">

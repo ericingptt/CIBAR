@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { AppShell } from './shell/AppShell';
 import { RequireLanguage } from './lib/RequireLanguage';
+import { GestureIntro } from './pages/GestureIntro';
 import { LanguageSelect } from './pages/LanguageSelect';
 import { Scanner } from './pages/Scanner';
 import { ScenarioStub } from './pages/ScenarioStub';
@@ -23,7 +24,8 @@ export const routes = [
     path: '/',
     element: <AppShell />,
     children: [
-      { index: true, element: <LanguageSelect /> },
+      { index: true, element: <GestureIntro /> },
+      { path: 'language', element: <LanguageSelect /> },
       { path: 'scanner', element: <RequireLanguage><Scanner /></RequireLanguage> },
 
       { path: 'scenario01-investment', element: <Briefing /> },
