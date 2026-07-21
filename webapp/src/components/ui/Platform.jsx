@@ -1,5 +1,5 @@
-export function Platform({ variant = '', children }) {
-  return <section className={`platform${variant ? ' ' + variant : ''}`}>{children}</section>;
+export function Platform({ variant = '', className = '', children }) {
+  return <section className={`platform${variant ? ' ' + variant : ''}${className ? ' ' + className : ''}`}>{children}</section>;
 }
 
 export function Stat({ label, value }) {
