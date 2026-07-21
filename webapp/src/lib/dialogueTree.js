@@ -50,7 +50,7 @@ export function useDialogueTree(nodes, startId) {
     if (node.tip) {
       const tip = typeof node.tip === 'string' ? { text: node.tip } : node.tip;
       push({ kind: 'tip', text: tip.text, detail: tip.detail, key: node.id });
-      setPendingTip({ next: node.next });
+      setPendingTip({ next: node.next, key: node.id });
       return;
     }
     if (node.custom) {

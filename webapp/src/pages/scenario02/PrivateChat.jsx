@@ -298,7 +298,7 @@ function VideoBubble({ item, watched, onOpen }) {
   );
 }
 
-function TipItem({ item, onAck }) {
+function TipItem({ item, active, onAck }) {
   const [expanded, setExpanded] = useState(false);
   return (
     <div className="tip-inline">
@@ -317,9 +317,13 @@ function TipItem({ item, onAck }) {
           )}
         </>
       )}
-      <div className="btns">
-        <button type="button" className="btn secondary" onClick={onAck}>知道了</button>
-      </div>
+      {active ? (
+        <div className="btns">
+          <button type="button" className="btn secondary" onClick={onAck}>知道了</button>
+        </div>
+      ) : (
+        <p className="mini" style={{ marginTop: 8 }}>已知悉</p>
+      )}
     </div>
   );
 }
@@ -387,7 +391,7 @@ export function PrivateChat() {
             );
           }
           if (item.kind === 'tip') {
-            return <TipItem key={i} item={item} onAck={completeTip} />;
+            return <TipItem key={i} item={item} active={pendingTip?.key === item.key} onAck={completeTip} />;
           }
           if (item.kind === 'shot') {
             return (
