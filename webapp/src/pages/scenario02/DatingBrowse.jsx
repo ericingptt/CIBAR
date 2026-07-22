@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { ButtonGroup } from '../../components/ui/ButtonGroup';
@@ -6,6 +6,8 @@ import { useSaveScenario02Progress } from '../../lib/scenario02Store';
 import { SparkLogo } from './spark/SparkLogo';
 import { ChatIcon, BellIcon, SettingsIcon } from './spark/icons';
 import { MatchOverlay } from './spark/MatchOverlay';
+
+const PROFILE_BASE = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/`;
 
 const CARDS = [
   {
@@ -17,6 +19,7 @@ const CARDS = [
     bio: '喜歡旅行、咖啡和看電影。假日常常到處走走拍照。',
     tags: ['Coffee', 'Travel', 'Photo'],
     gradient: 'linear-gradient(155deg,#FFB199,#FF8D6B)',
+    photo: `${PROFILE_BASE}sophie.jpg`,
   },
   {
     id: 'lina',
@@ -27,6 +30,7 @@ const CARDS = [
     bio: '週末喜歡爬山和逛市集，最近在學怎麼手沖咖啡。',
     tags: ['Hiking', 'Market', 'Coffee'],
     gradient: 'linear-gradient(155deg,#FFD3A5,#FFA36C)',
+    photo: `${PROFILE_BASE}lina.jpg`,
   },
   {
     id: 'emily',
@@ -37,6 +41,7 @@ const CARDS = [
     bio: '剛搬來台北。喜歡咖啡、電影、散步。希望遇到可以好好聊天的人。',
     tags: ['Coffee', 'Movie', 'Walking'],
     gradient: 'linear-gradient(155deg,#FF9AA6,#FF5A76)',
+    photo: `${PROFILE_BASE}emily.png`,
   },
 ];
 
@@ -46,6 +51,8 @@ export function DatingBrowse() {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState('browse');
   const [swipe, setSwipe] = useState('idle');
+  const [photoError, setPhotoError] = useState(false);
+  useEffect(() => setPhotoError(false), [index]);
 
   const card = CARDS[index];
   const isEmily = card?.id === 'emily';
@@ -124,7 +131,16 @@ export function DatingBrowse() {
       <div className="spark-stack">
         <article className={`spark-swipe-card${swipe !== 'idle' ? ` swipe-${swipe}` : ''}`}>
           <div className="spark-photo" style={{ background: card.gradient }}>
-            <span className="spark-photo-initial">{card.name[0]}</span>
+            {card.photo && !photoError ? (
+              <img
+                className="spark-photo-img"
+                src={card.photo}
+                alt={card.name}
+                onError={() => setPhotoError(true)}
+              />
+            ) : (
+              <span className="spark-photo-initial">{card.name[0]}</span>
+            )}
             <div className="spark-photo-shade" />
             <div className="spark-photo-info">
               <span className="spark-photo-name">
