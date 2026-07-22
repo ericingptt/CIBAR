@@ -21,7 +21,7 @@ const PEOPLE = [
     job: '平面設計師',
     bio: '喜歡旅行、咖啡和看電影。假日常常到處走走拍照。',
     tags: ['咖啡', '旅行', '攝影'],
-    photo: `${PROFILE_BASE}sophie.jpg`,
+    photo: `${PROFILE_BASE}sophie.webp`,
   },
   {
     id: 'lina',
@@ -31,7 +31,7 @@ const PEOPLE = [
     job: '國小老師',
     bio: '週末喜歡爬山和逛市集，最近在學怎麼手沖咖啡。',
     tags: ['爬山', '咖啡', '甜點'],
-    photo: `${PROFILE_BASE}lina.jpg`,
+    photo: `${PROFILE_BASE}lina.webp`,
   },
   {
     id: 'emily',
@@ -41,7 +41,7 @@ const PEOPLE = [
     job: '行政企劃',
     bio: '剛搬來台北。喜歡咖啡、電影、散步。希望遇到可以好好聊天的人。',
     tags: ['咖啡', '電影', '散步'],
-    photo: `${PROFILE_BASE}emily.png`,
+    photo: `${PROFILE_BASE}emily.webp`,
   },
 ];
 

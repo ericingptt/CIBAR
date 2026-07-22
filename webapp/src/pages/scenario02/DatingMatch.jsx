@@ -4,7 +4,7 @@ import { MatchOverlay } from './tanu/MatchOverlay';
 
 const EMILY = {
   name: 'Emily',
-  photo: `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/emily.png`,
+  photo: `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/emily.webp`,
 };
 
 // Normal play never routes here - liking Emily's card in DatingBrowse shows
