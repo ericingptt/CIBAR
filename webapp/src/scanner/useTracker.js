@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TRACKER_TARGET_SRC, TRACKER_TARGETS } from './trackerConfig';
 import { getSharedCamera } from '../camera/sharedCamera';
+import { ENABLE_MINDAR_SCANNER } from '../config/features';
 
 const SCANNING_MESSAGE = '啟動相機與追蹤中……請將鏡頭對準目標圖片';
 
@@ -39,6 +40,14 @@ export function useTracker(containerRef) {
   const [targetsLoaded, setTargetsLoaded] = useState(null); // null=unknown, number=count, 'error'
 
   useEffect(() => {
+    // MindAR disabled (see config/features.js): never open the shared
+    // camera or load the tracker. The page's "模擬掃到" buttons don't use
+    // this hook at all, so manual scenario navigation is unaffected.
+    if (!ENABLE_MINDAR_SCANNER) {
+      setStatus('MindAR 已停用（開發模式）：請使用下方「模擬掃到」按鈕。');
+      return undefined;
+    }
+
     const container = containerRef.current;
     if (!container) return undefined;
 
