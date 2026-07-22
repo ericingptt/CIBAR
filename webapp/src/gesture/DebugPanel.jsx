@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGesture } from './GestureProvider';
 import { CameraPicker } from '../camera/CameraPicker';
+import { ENABLE_GESTURE_TUTORIAL } from '../config/features';
 
 const GESTURE_LABELS = {
   idle: 'idle',
@@ -26,6 +27,9 @@ export function DebugPanel() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  // Nothing to debug while the gesture pipeline isn't running at all.
+  if (!ENABLE_GESTURE_TUTORIAL) return null;
 
   return (
     <div

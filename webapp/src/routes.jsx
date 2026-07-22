@@ -1,4 +1,5 @@
 import { Navigate } from 'react-router-dom';
+import { ENABLE_GESTURE_TUTORIAL } from './config/features';
 import { AppShell } from './shell/AppShell';
 import { RequireLanguage } from './lib/RequireLanguage';
 import { GestureIntro } from './pages/GestureIntro';
@@ -39,7 +40,10 @@ export const routes = [
     path: '/',
     element: <AppShell />,
     children: [
-      { index: true, element: <GestureIntro /> },
+      {
+        index: true,
+        element: ENABLE_GESTURE_TUTORIAL ? <GestureIntro /> : <Navigate to="/language" replace />,
+      },
       { path: 'language', element: <LanguageSelect /> },
       { path: 'scanner', element: <RequireLanguage><Scanner /></RequireLanguage> },
 

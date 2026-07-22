@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { getSharedCamera } from '../camera/sharedCamera';
 import { loadHandLandmarker, detectFrame } from './handLandmarker';
 import { createGestureClassifier } from './gestureClassifier';
+import { ENABLE_GESTURE_TUTORIAL } from '../config/features';
 
 const GestureContext = createContext(null);
 
@@ -37,6 +38,12 @@ export function GestureProvider({ children }) {
   const pausedRef = useRef(false);
 
   useEffect(() => {
+    // Gesture flow disabled (see config/features.js): never open the shared
+    // camera or load the hand-tracking model from here. Scanner's MindAR
+    // tracker still opens the shared camera itself when that page mounts -
+    // this only skips this module's own eager, site-wide acquisition.
+    if (!ENABLE_GESTURE_TUTORIAL) return undefined;
+
     let cancelled = false;
     let rafId = null;
     let landmarker = null;
