@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useStageClassName } from '../../shell/StageClassContext';
-import fbadsImage from '../../assets/scenario01-investment/images/fbads.webp';
+import fbadsImage from '../../assets/scenarios/scenario-01/images/fbads.webp';
 
 export function Feed() {
   useStageClassName('feed-stage');
