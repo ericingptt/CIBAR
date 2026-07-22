@@ -26,6 +26,13 @@ const VIDEO_CAPTIONS = {
   ],
 };
 
+const VIDEO_BASE = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/videos/`;
+const VIDEO_SRC = {
+  v1: `${VIDEO_BASE}emily-video-01.mp4`,
+  v2: `${VIDEO_BASE}emily-video-02.mp4`,
+  v3: `${VIDEO_BASE}emily-video-03.mp4`,
+};
+
 const NODES = [
   { id: 'join-sys', from: 'system', text: '你已加入 Emily 為好友', wait: 800, next: 'join-emily1' },
   { id: 'join-emily1', from: 'emily', text: '找到你了～', next: 'join-emily2' },
@@ -344,11 +351,14 @@ export function PrivateChat() {
     done,
   } = useDialogueTree(NODES, 'join-sys');
   const [openVideoId, setOpenVideoId] = useState(null);
+  const [videoError, setVideoError] = useState(false);
   const chatRef = useRef(null);
 
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [timeline, isTyping, pendingChoice, pendingTip]);
+
+  useEffect(() => setVideoError(false), [openVideoId]);
 
   const activeVideoItem = useMemo(
     () => (openVideoId ? timeline.find((t) => t.kind === 'video' && t.videoId === openVideoId) : null),
@@ -438,9 +448,21 @@ export function PrivateChat() {
       <Modal show={!!activeVideoItem}>
         <div className="card video-modal-card">
           <h2>Emily 的影片</h2>
-          <div className="video-placeholder-box">
-            影片素材待補（建議尺寸 1080×1920，直式自拍）<br />先以文字重現內容：
-          </div>
+          {activeVideoItem && !videoError ? (
+            <video
+              key={activeVideoItem.videoId}
+              className="video-real"
+              controls
+              autoPlay
+              playsInline
+              src={VIDEO_SRC[activeVideoItem.videoId]}
+              onError={() => setVideoError(true)}
+            />
+          ) : (
+            <div className="video-placeholder-box">
+              影片素材待補（建議尺寸 1080×1920，直式自拍）<br />先以文字重現內容：
+            </div>
+          )}
           <div className="video-caption-lines">
             {activeVideoItem && VIDEO_CAPTIONS[activeVideoItem.videoId].map((line, i) => <p key={i}>{line}</p>)}
           </div>
