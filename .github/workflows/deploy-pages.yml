@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -30,6 +30,28 @@ jobs:
       - name: Build
         working-directory: webapp
         run: npm run build
+      # Repeated testing has shown this repo's Pages deployment actually
+      # serving the repo root directly (README.md as a fallback index, old
+      # root files shadowing every Actions-based deploy below) regardless of
+      # what Settings -> Pages -> Source shows selected. Rather than keep
+      # depending on that setting, also publish the build output straight to
+      # the repo root on main - whichever mode Pages is actually in, the
+      # correct app is what ends up there. This only touches the exact
+      # top-level entries `npm run build` produces, never webapp/,
+      # legacy-static-site/, .github/, docs/, or README.md.
+      - name: Publish build output to repo root
+        run: |
+          rm -rf assets favicon.svg index.html manifest.json mediapipe-wasm models sw.js
+          cp -r webapp/dist/. .
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets favicon.svg index.html manifest.json mediapipe-wasm models sw.js
+          if git diff --cached --quiet; then
+            echo "Build output unchanged, nothing to publish."
+          else
+            git commit -m "Publish webapp build output to repo root [skip ci]"
+            git push origin HEAD:main
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
