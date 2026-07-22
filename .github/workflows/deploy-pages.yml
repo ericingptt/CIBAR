@@ -9,6 +9,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  administration: write
 
 concurrency:
   group: pages
@@ -30,6 +31,25 @@ jobs:
       - name: Build
         working-directory: webapp
         run: npm run build
+      # Self-healing guard: if this repo's Pages source is ever "Deploy from
+      # a branch" instead of "GitHub Actions" (whether from how Pages was
+      # first enabled, or a manual Settings change reverting), it silently
+      # serves the repo root directly - completely bypassing everything this
+      # workflow builds and uploads below, with no error anywhere in this
+      # run to signal it. Force build_type back to "workflow" on every
+      # deploy instead of depending on a one-time manual Settings toggle.
+      # Best-effort: if the token ever lacks administration rights here,
+      # don't fail the whole deploy over it.
+      - name: Ensure Pages is configured for GitHub Actions
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -sS -X PUT \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/pages" \
+            -d '{"build_type":"workflow"}'
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
