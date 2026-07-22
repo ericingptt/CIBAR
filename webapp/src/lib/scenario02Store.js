@@ -39,3 +39,28 @@ export function useSaveScenario02Progress(route) {
     saveScenario02Progress(route);
   }, [route]);
 }
+
+// Which of Sophie/Lina's mini-arcs the player has already resolved (matched
+// -> chatted -> she ended it), so returning to /dating-browse resumes at
+// the next unresolved card instead of restarting from Sophie.
+const RESOLVED_KEY = 'cibar-scenario02-dating-resolved';
+
+export function getResolvedDatingCards() {
+  try {
+    const raw = localStorage.getItem(RESOLVED_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function markDatingCardResolved(id) {
+  try {
+    const current = getResolvedDatingCards();
+    if (!current.includes(id)) {
+      localStorage.setItem(RESOLVED_KEY, JSON.stringify([...current, id]));
+    }
+  } catch {
+    // localStorage unavailable - progress just won't persist.
+  }
+}
