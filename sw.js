@@ -1,18 +1,20 @@
-const CACHE_NAME='cibar-cache-v20260720-10';
-self.addEventListener('install',e=>{self.skipWaiting()});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
-self.addEventListener('fetch',e=>{
-  const req=e.request;
-  if(req.method!=='GET'||new URL(req.url).origin!==self.location.origin)return;
-  e.respondWith(caches.open(CACHE_NAME).then(async cache=>{
-    try{
-      const res=await fetch(req,{cache:'no-store'});
-      if(res.ok)cache.put(req,res.clone());
-      return res;
-    }catch(err){
-      const cached=await cache.match(req);
-      if(cached)return cached;
-      throw err;
-    }
-  }));
+// Kill switch. The old static prototype (now archived under
+// legacy-static-site/) registered a service worker at this same
+// origin+scope, and any browser that ever visited it still has that
+// registration active, silently intercepting every fetch on later visits
+// regardless of what's actually deployed since. skipWaiting() +
+// clients.claim() take over immediately on the next load; activate then
+// wipes every cache, unregisters itself, and reloads any open tab so it
+// goes back to plain network requests with no service worker at all.
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      await self.registration.unregister();
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach((client) => client.navigate(client.url));
+    })(),
+  );
 });
