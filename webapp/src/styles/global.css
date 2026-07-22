@@ -114,3 +114,72 @@
 .step-status-list li.done{color:var(--ok)}
 .step-status-list li .dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
 .risk-card{margin-top:12px}
+
+/* SPARK (scenario02 dating app) - deliberately its own design language,
+   independent of the dark-navy AR-stage chrome and the LINE-style chat used
+   elsewhere in this app: a light, premium dating-app look modeled on
+   Tinder/Bumble-class UI conventions, using an original brand mark (see
+   spark/SparkLogo.jsx) rather than any real app's logo. */
+.spark-app{background:linear-gradient(180deg,#FFFFFF,#F5F6FA);border-radius:28px;padding:20px 20px 24px;color:#222222;box-shadow:0 24px 70px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.24);transition:filter .3s ease,transform .3s ease}
+.spark-app.spark-app-blurred{filter:brightness(.9) saturate(.9);transform:scale(.98)}
+
+.spark-header{display:flex;align-items:center;gap:14px;padding:2px 4px 16px}
+.spark-header-title{flex:1;text-align:center;font-weight:800;font-size:17px;letter-spacing:.02em;color:#222222}
+.spark-header-icons{display:flex;gap:6px}
+.spark-header-icons button{border:0;background:none;color:#7A7A7A;padding:8px;border-radius:999px;cursor:pointer;display:grid;place-items:center}
+.spark-header-icons button:hover{background:rgba(34,34,34,.06);color:#222222}
+
+.spark-stack{display:flex;justify-content:center}
+.spark-swipe-card{width:100%;max-width:340px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.14);transition:transform .46s cubic-bezier(.34,1.56,.64,1),opacity .46s ease}
+.spark-swipe-card.swipe-like{transform:translateX(150%) rotate(8deg);opacity:0}
+.spark-swipe-card.swipe-pass{transform:translateX(-150%) rotate(-8deg);opacity:0}
+
+.spark-photo{position:relative;aspect-ratio:4/5;display:grid;place-items:center;overflow:hidden}
+.spark-photo-initial{font-size:96px;font-weight:800;color:rgba(255,255,255,.5)}
+.spark-photo-shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.62) 100%)}
+.spark-photo-info{position:absolute;left:18px;right:18px;bottom:16px;display:flex;flex-direction:column;color:#fff}
+.spark-photo-name{font-size:26px;font-weight:800;text-shadow:0 2px 10px rgba(0,0,0,.35)}
+.spark-photo-age{font-weight:500;opacity:.92}
+.spark-photo-distance{font-size:14px;opacity:.92;margin-top:2px}
+.spark-stamp{position:absolute;top:26px;padding:8px 18px;border-radius:10px;border:3px solid;font-size:26px;font-weight:900;letter-spacing:.06em;transform:rotate(-14deg)}
+.spark-stamp.like{left:22px;color:#3DDC84;border-color:#3DDC84;background:rgba(61,220,132,.12)}
+.spark-stamp.pass{right:22px;color:#9AA0A6;border-color:#9AA0A6;background:rgba(154,160,166,.14);transform:rotate(14deg)}
+
+.spark-info-card{padding:18px 20px 20px}
+.spark-job{font-weight:700;font-size:15px;color:#222222}
+.spark-bio{color:#7A7A7A;font-size:14.5px;line-height:1.65;margin:8px 0 12px}
+.spark-tags{display:flex;gap:8px;flex-wrap:wrap}
+.spark-tag{background:#FAFAFC;border:1px solid rgba(34,34,34,.1);color:#222222;font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px}
+
+.spark-actions{display:flex;justify-content:center;gap:26px;margin-top:22px}
+.spark-action{width:60px;height:60px;border-radius:50%;border:0;cursor:pointer;font-size:24px;display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.16);transition:transform .15s ease}
+.spark-action:active{transform:scale(.9)}
+.spark-action.pass{background:#FFFFFF;color:#9AA0A6;border:1px solid rgba(34,34,34,.08)}
+.spark-action.like{background:linear-gradient(135deg,#FF5A76,#FF8D6B);color:#fff;font-size:26px}
+
+.spark-interstitial{background:#FFFFFF;border-radius:24px;padding:28px;text-align:center;color:#222222;box-shadow:0 18px 40px rgba(0,0,0,.14)}
+.spark-interstitial h2{color:#222222}
+.spark-interstitial p{color:#7A7A7A}
+
+.match-overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,14,24,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:matchFade .25s ease-out}
+.match-overlay-avatars{display:flex}
+.match-overlay-avatar{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:32px;color:#fff;margin:0 -16px;border:4px solid rgba(255,255,255,.9);animation:matchPop .55s cubic-bezier(.34,1.56,.64,1) backwards}
+.match-overlay-avatar.you{background:linear-gradient(135deg,#25d0ff,#5578ff);animation-delay:.05s}
+.match-overlay-avatar.emily{background:linear-gradient(135deg,#FF9AA6,#FF5A76);animation-delay:.18s}
+.match-overlay-title{font-size:clamp(30px,6vw,44px);font-weight:900;color:#fff;animation:matchPop .5s cubic-bezier(.34,1.56,.64,1) .32s backwards}
+.match-overlay-sub{color:rgba(255,255,255,.78);font-size:16px;animation:matchPop .5s cubic-bezier(.34,1.56,.64,1) .42s backwards}
+@keyframes matchFade{from{opacity:0}to{opacity:1}}
+@keyframes matchPop{0%{opacity:0;transform:scale(.5)}100%{opacity:1;transform:scale(1)}}
+
+.spark-chat-page{background:#F8F8FA;border-radius:28px;overflow:hidden;border:1px solid rgba(255,255,255,.24);box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.spark-chat-header{display:flex;align-items:center;gap:12px;padding:16px 18px;background:#FFFFFF;border-bottom:1px solid rgba(34,34,34,.08)}
+.spark-chat-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FF9AA6,#FF5A76);display:grid;place-items:center;font-weight:900;color:#fff}
+.spark-chat-name{font-weight:800;color:#222222}
+.spark-chat-status{display:flex;align-items:center;gap:6px;font-size:13px;color:#7A7A7A}
+.spark-online-dot{width:8px;height:8px;border-radius:50%;background:#3DDC84;flex:none}
+.chat.spark-chat{background:#F8F8FA;border-radius:0}
+.spark-chat .msg{display:flex;flex-direction:column;gap:3px;background:#FFFFFF;color:#222222}
+.spark-chat .msg.user{background:#FFE3E8;color:#222222}
+.spark-chat .msg.system{background:rgba(122,122,122,.12);color:#7A7A7A}
+.spark-msg-time{align-self:flex-end;font-size:11px;color:#9AA0A6}
+.spark-chat-page .chat-actions,.spark-chat-page .quick-reply{background:#F8F8FA}

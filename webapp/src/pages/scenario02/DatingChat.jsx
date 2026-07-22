@@ -4,6 +4,15 @@ import { Button } from '../../components/ui/Button';
 import { useDialogueTree } from '../../lib/dialogueTree';
 import { useSaveScenario02Progress } from '../../lib/scenario02Store';
 
+// Cosmetic only - a plausible-looking clock, a few minutes apart per
+// message, not a real wall-clock read.
+function fakeTime(i) {
+  const totalMinutes = 20 * 60 + 14 + i * 2;
+  const h = Math.floor(totalMinutes / 60) % 24;
+  const m = totalMinutes % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 const NODES = [
   { id: 'r1-ask', from: 'emily', text: '嗨～你今天過得怎麼樣？', next: 'r1-choice' },
   {
@@ -92,20 +101,19 @@ export function DatingChat() {
   useEffect(() => () => clearTimeout(tipTimerRef.current), []);
 
   return (
-    <section className="phone-frame">
-      <header className="chat-header">
-        <div className="chat-person">
-          <div className="chat-avatar">E</div>
-          <div>
-            <div className="chat-title">Emily · SPARK</div>
-            <small>已配對</small>
-          </div>
+    <section className="spark-chat-page">
+      <header className="spark-chat-header">
+        <div className="spark-chat-avatar">E</div>
+        <div>
+          <div className="spark-chat-name">Emily</div>
+          <div className="spark-chat-status"><span className="spark-online-dot" />Online now</div>
         </div>
       </header>
-      <Chat ref={chatRef} variant="line-chat">
+      <Chat ref={chatRef} variant="spark-chat">
         {timeline.map((item, i) => (
           <Message key={i} type={item.from === 'user' ? 'user' : item.from === 'system' ? 'system' : ''}>
-            {item.text}
+            <span>{item.text}</span>
+            {item.from !== 'system' && <span className="spark-msg-time">{fakeTime(i)}</span>}
           </Message>
         ))}
         {isTyping && <TypingIndicator label="Emily 正在輸入……" />}
