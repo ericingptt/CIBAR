@@ -14,7 +14,7 @@ const VIDEO_SRC = {
   v3: `${VIDEO_BASE}emily-video-030.mp4`,
 };
 
-const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/emily.png`;
+const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/emily.webp`;
 
 // "Day N" node labels stay as internal ids (other nodes reference them via
 // `next`) - only the displayed text is converted to a plausible in-month

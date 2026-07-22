@@ -6,7 +6,7 @@ import { useStageClassName } from '../../shell/StageClassContext';
 import { ProfileAvatar } from './components/ProfileAvatar';
 import { SuggestedReplies } from './tanu/SuggestedReplies';
 
-const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/emily.png`;
+const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/emily.webp`;
 
 const NODES = [
   { id: 'r1-ask', from: 'emily', text: '嗨～你今天過得怎麼樣？', next: 'r1-choice' },
