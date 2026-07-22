@@ -28,9 +28,9 @@ const VIDEO_CAPTIONS = {
 
 const VIDEO_BASE = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/videos/`;
 const VIDEO_SRC = {
-  v1: `${VIDEO_BASE}emily-video-01.mp4`,
-  v2: `${VIDEO_BASE}emily-video-02.mp4`,
-  v3: `${VIDEO_BASE}emily-video-03.mp4`,
+  v1: `${VIDEO_BASE}emily-video-010.mp4`,
+  v2: `${VIDEO_BASE}emily-video-020.mp4`,
+  v3: `${VIDEO_BASE}emily-video-030.mp4`,
 };
 
 const NODES = [
