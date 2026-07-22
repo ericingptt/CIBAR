@@ -1,30 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Chat, Message, TypingIndicator } from '../../components/ui/Chat';
-import { Button } from '../../components/ui/Button';
-import { Modal } from '../../components/ui/Modal';
+import { ChevronLeft, Search, Phone, Menu, Play } from 'lucide-react';
 import { useDialogueTree } from '../../lib/dialogueTree';
 import { useSaveScenario02Progress } from '../../lib/scenario02Store';
-
-const VIDEO_CAPTIONS = {
-  v1: [
-    '欸～你終於回我了喔？',
-    '我還以為你今天都不理我了呢……',
-    '好啦，我沒有生氣啦，只是……有一點點想你而已。',
-    '好好工作喔，我晚一點再找你。',
-  ],
-  v2: [
-    '今天終於下班了～有點累。',
-    '可是突然想到等等可以跟你聊天，心情就變好了。',
-    '你今天有沒有乖乖吃飯？不要又忙到忘記吃飯喔。',
-  ],
-  v3: [
-    '你睡了嗎？我本來都已經躺好了。',
-    '可是睡前突然想到你，就還是想拍一小段給你看。',
-    '你不要有壓力喔，我只是突然想到而已。',
-    '好啦，晚安。',
-  ],
-};
+import { useStageClassName } from '../../shell/StageClassContext';
+import { ProfileAvatar } from './components/ProfileAvatar';
+import { SuggestedReplies } from './tanu/SuggestedReplies';
 
 const VIDEO_BASE = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/videos/`;
 const VIDEO_SRC = {
@@ -32,6 +13,23 @@ const VIDEO_SRC = {
   v2: `${VIDEO_BASE}emily-video-020.mp4`,
   v3: `${VIDEO_BASE}emily-video-030.mp4`,
 };
+
+const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/emily.png`;
+
+// "Day N" node labels stay as internal ids (other nodes reference them via
+// `next`) - only the displayed text is converted to a plausible in-month
+// date, per the "this must look like LINE, not a game" note. Offsets are
+// real day-gaps from the original Day 1/3/5/7/10/12/15 spacing.
+const DAY_OFFSETS = { 'Day 1': 0, 'Day 3': 2, 'Day 5': 4, 'Day 7': 6, 'Day 10': 9, 'Day 12': 11, 'Day 15': 14 };
+const DIVIDER_BASE_DATE = new Date(2026, 6, 10); // 2026-07-10
+const WEEKDAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+function formatDivider(label) {
+  const offset = DAY_OFFSETS[label] ?? 0;
+  const d = new Date(DIVIDER_BASE_DATE);
+  d.setDate(d.getDate() + offset);
+  return `${d.getMonth() + 1}月${d.getDate()}日 ${WEEKDAYS[d.getDay()]}`;
+}
 
 const NODES = [
   { id: 'join-sys', from: 'system', text: '你已加入 Emily 為好友', wait: 800, next: 'join-emily1' },
@@ -80,7 +78,7 @@ const NODES = [
       { label: '妳在等我喔？', reply: '不行喔？我不能等你嗎？', next: 'day3-video' },
     ],
   },
-  { id: 'day3-video', video: { videoId: 'v1', duration: '00:15' }, next: 'day3-post-choice' },
+  { id: 'day3-video', video: { videoId: 'v1', duration: '0:15' }, next: 'day3-post-choice' },
   {
     id: 'day3-post-choice',
     choice: true,
@@ -125,7 +123,7 @@ const NODES = [
 
   { id: 'day7-divider', divider: 'Day 7', next: 'day7-pre' },
   { id: 'day7-pre', from: 'emily', text: '終於下班了……', next: 'day7-video' },
-  { id: 'day7-video', video: { videoId: 'v2', duration: '00:15' }, next: 'day7-post-choice' },
+  { id: 'day7-video', video: { videoId: 'v2', duration: '0:15' }, next: 'day7-post-choice' },
   {
     id: 'day7-post-choice',
     choice: true,
@@ -180,7 +178,7 @@ const NODES = [
       { label: '在等妳說晚安', reply: '你是不是知道我會找你？', next: 'day12-video' },
     ],
   },
-  { id: 'day12-video', video: { videoId: 'v3', duration: '00:15' }, next: 'day12-post-choice' },
+  { id: 'day12-video', video: { videoId: 'v3', duration: '0:15' }, next: 'day12-post-choice' },
   {
     id: 'day12-post-choice',
     choice: true,
@@ -288,19 +286,11 @@ const NODES = [
   { id: 'end-chat', end: true, reason: 'reached-link' },
 ];
 
-function VideoBubble({ item, watched, onOpen }) {
+function VideoThumb({ item, onOpen }) {
   return (
-    <button
-      type="button"
-      className={`video-msg${watched ? ' watched' : ''}`}
-      onClick={onOpen}
-      aria-label={`播放 Emily 傳來的影片，長度 ${item.duration}`}
-    >
-      <span className="video-play">{watched ? '✓' : '▶'}</span>
-      <span>
-        <div>Emily 傳來一段影片</div>
-        <div className="video-meta">{watched ? '已觀看' : item.duration}</div>
-      </span>
+    <button type="button" className="line-video-thumb" onClick={onOpen} aria-label="重新播放影片">
+      <span className="line-video-thumb-play"><Play size={20} fill="currentColor" /></span>
+      <span className="line-video-thumb-duration">{item.duration}</span>
     </button>
   );
 }
@@ -335,8 +325,52 @@ function TipItem({ item, active, onAck }) {
   );
 }
 
+// Fullscreen autoplay video overlay - no controls, no captions, no "看完了"
+// button. Tries to play with sound; only if the browser actually blocks
+// autoplay does it fall back to a tap-to-play screen (not the normal path).
+function VideoOverlay({ src, onEnded }) {
+  const videoRef = useRef(null);
+  const [blocked, setBlocked] = useState(false);
+
+  useEffect(() => {
+    setBlocked(false);
+    const playPromise = videoRef.current?.play();
+    if (playPromise?.catch) {
+      playPromise.catch(() => setBlocked(true));
+    }
+  }, [src]);
+
+  function retryPlay() {
+    videoRef.current?.play().then(() => setBlocked(false)).catch(() => setBlocked(true));
+  }
+
+  return (
+    <div className="line-video-overlay" onContextMenu={(e) => e.preventDefault()}>
+      <video
+        ref={videoRef}
+        className="line-video-overlay-el"
+        src={src}
+        playsInline
+        preload="auto"
+        controls={false}
+        disablePictureInPicture
+        controlsList="nodownload noplaybackrate nofullscreen"
+        onEnded={onEnded}
+        onError={onEnded}
+      />
+      {blocked && (
+        <button type="button" className="line-video-tap-fallback" onClick={retryPlay}>
+          <Play size={56} fill="currentColor" />
+          <span>點一下播放 Emily 傳來的影片</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function PrivateChat() {
   useSaveScenario02Progress('/scenario02-romance/private-chat');
+  useStageClassName('tanu-stage');
   const navigate = useNavigate();
   const {
     timeline,
@@ -351,53 +385,71 @@ export function PrivateChat() {
     done,
   } = useDialogueTree(NODES, 'join-sys');
   const [openVideoId, setOpenVideoId] = useState(null);
-  const [videoError, setVideoError] = useState(false);
-  const chatRef = useRef(null);
+  const [replayVideoId, setReplayVideoId] = useState(null);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    }
   }, [timeline, isTyping, pendingChoice, pendingTip]);
 
-  useEffect(() => setVideoError(false), [openVideoId]);
+  // Video nodes auto-open full-screen the moment they're reached - no click
+  // required. Re-watching an already-watched thumbnail (replayVideoId) does
+  // not touch story progress.
+  useEffect(() => {
+    if (pendingVideo && !watchedVideoIds.has(pendingVideo.videoId)) {
+      setOpenVideoId(pendingVideo.videoId);
+    }
+  }, [pendingVideo, watchedVideoIds]);
 
-  const activeVideoItem = useMemo(
-    () => (openVideoId ? timeline.find((t) => t.kind === 'video' && t.videoId === openVideoId) : null),
-    [openVideoId, timeline],
-  );
+  const activeSrc = useMemo(() => {
+    const id = openVideoId ?? replayVideoId;
+    return id ? VIDEO_SRC[id] : null;
+  }, [openVideoId, replayVideoId]);
 
-  function closeVideoModal(markWatched) {
-    setOpenVideoId(null);
-    if (markWatched) completeVideo();
+  function handleVideoEnded() {
+    if (openVideoId) {
+      setOpenVideoId(null);
+      completeVideo();
+      requestAnimationFrame(() => {
+        scrollRef.current?.focus?.();
+        if (scrollRef.current) {
+          scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+        }
+      });
+    } else if (replayVideoId) {
+      setReplayVideoId(null);
+    }
   }
 
   return (
-    <section className="phone-frame">
-      <header className="chat-header">
-        <div className="chat-person">
-          <div className="chat-avatar">E</div>
-          <div>
-            <div className="chat-title">Emily · CHAT+</div>
-            <small>上線中</small>
-          </div>
+    <div className="line-app">
+      <header className="line-header">
+        <button type="button" className="line-icon-btn" aria-label="返回" onClick={() => navigate('/scenario02-romance/dating-chat')}>
+          <ChevronLeft size={26} />
+        </button>
+        <ProfileAvatar name="Emily" src={EMILY_PHOTO} size={34} />
+        <div className="line-header-name">Emily</div>
+        <div className="line-header-icons">
+          <button type="button" className="line-icon-btn" aria-label="搜尋"><Search size={20} /></button>
+          <button type="button" className="line-icon-btn" aria-label="通話"><Phone size={20} /></button>
+          <button type="button" className="line-icon-btn" aria-label="選單"><Menu size={20} /></button>
         </div>
       </header>
-      <Chat ref={chatRef} variant="line-chat">
+      <div className="line-chat-scroll" ref={scrollRef} tabIndex={-1}>
         {timeline.map((item, i) => {
           if (item.kind === 'divider') {
             return (
-              <div key={i} className="day-divider"><span>{item.label}</span></div>
+              <div key={i} className="line-date-divider"><span>{formatDivider(item.label)}</span></div>
             );
           }
           if (item.kind === 'video') {
             const watched = watchedVideoIds.has(item.videoId);
-            const isPending = pendingVideo?.videoId === item.videoId;
             return (
-              <VideoBubble
-                key={i}
-                item={item}
-                watched={watched}
-                onOpen={() => (watched && !isPending ? null : setOpenVideoId(item.videoId))}
-              />
+              <div key={i} className="line-msg-row them">
+                <VideoThumb item={item} onOpen={() => watched && setReplayVideoId(item.videoId)} />
+              </div>
             );
           }
           if (item.kind === 'tip') {
@@ -422,53 +474,28 @@ export function PrivateChat() {
               </div>
             );
           }
+          if (item.from === 'system') {
+            return <div key={i} className="line-date-divider"><span>{item.text}</span></div>;
+          }
+          const mine = item.from === 'user';
           return (
-            <Message key={i} type={item.from === 'user' ? 'user' : item.from === 'system' ? 'system' : ''}>
-              {item.text}
-            </Message>
+            <div key={i} className={`line-msg-row${mine ? ' mine' : ' them'}`}>
+              <div className={`line-msg ${mine ? 'me' : 'them'}`}>{item.text}</div>
+            </div>
           );
         })}
-        {isTyping && <TypingIndicator label="Emily 正在輸入……" />}
-      </Chat>
-      {pendingChoice && (
-        <div className="btns chat-actions">
-          {pendingChoice.options.map((opt, i) => (
-            <button key={i} className="btn secondary line-choice-btn" type="button" onClick={() => choose(i)}>
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      )}
-      {done && (
-        <div className="btns chat-actions">
-          <Button onClick={() => navigate('/scenario02-romance/platform-register')}>前往平台看看</Button>
-        </div>
-      )}
+        {isTyping && <div className="tanu-typing"><i /><i /><i /></div>}
+      </div>
+      <footer className="line-chat-footer">
+        {pendingChoice && <SuggestedReplies options={pendingChoice.options} onChoose={choose} />}
+        {done && (
+          <button type="button" className="tanu-primary-btn" onClick={() => navigate('/scenario02-romance/platform-register')}>
+            前往平台看看
+          </button>
+        )}
+      </footer>
 
-      <Modal show={!!activeVideoItem}>
-        <div className="card video-modal-card">
-          <h2>Emily 的影片</h2>
-          {activeVideoItem && !videoError ? (
-            <video
-              key={activeVideoItem.videoId}
-              className="video-real"
-              controls
-              autoPlay
-              playsInline
-              src={VIDEO_SRC[activeVideoItem.videoId]}
-              onError={() => setVideoError(true)}
-            />
-          ) : (
-            <div className="video-placeholder-box">
-              影片素材待補（建議尺寸 1080×1920，直式自拍）<br />先以文字重現內容：
-            </div>
-          )}
-          <div className="video-caption-lines">
-            {activeVideoItem && VIDEO_CAPTIONS[activeVideoItem.videoId].map((line, i) => <p key={i}>{line}</p>)}
-          </div>
-          <Button onClick={() => closeVideoModal(true)}>看完了</Button>
-        </div>
-      </Modal>
-    </section>
+      {activeSrc && <VideoOverlay src={activeSrc} onEnded={handleVideoEnded} />}
+    </div>
   );
 }
