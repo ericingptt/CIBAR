@@ -3,29 +3,48 @@ import { ButtonGroup } from '../../components/ui/ButtonGroup';
 import { Button } from '../../components/ui/Button';
 import { useSaveScenario02Progress } from '../../lib/scenario02Store';
 
-const RISKS = [
-  { title: '一、快速建立情感依附', body: '對方在短時間內以固定問候、撒嬌、關心作息及親密影片建立戀愛感。' },
-  { title: '二、導流私人通訊軟體', body: '由交友平台轉移至私人聊天軟體，讓對話離開原平台的安全與檢舉機制。' },
-  { title: '三、以感情建立投資信任', body: '投資不是由公開機構或專業顧問介紹，而是由曖昧對象透過情感關係推薦。' },
-  { title: '四、陌生投資網址', body: '對方提供網頁連結，平台缺乏明確公司資訊、金融監管資料及可信客服管道。' },
-  { title: '五、假帳面獲利', body: '網頁上的收益、餘額與交易紀錄，都可能由詐騙集團後台任意修改。' },
-  { title: '六、要求先付款才能出金', body: '合法平台不應要求使用者先繳交保證金、驗證金、解凍金或稅金，才可以提領自己的資產。' },
-  { title: '七、宣稱保證金可退還', body: '「這不是費用」「驗證完成後會一起退還」「只差最後一步」都是用來降低戒心的常見話術。' },
+const DISCLOSURES = [
+  {
+    title: '揭露一：入金後，感情立刻升級',
+    body: '玩家第一次入金後，Emily 立刻改稱「老公」，讓金錢行為看起來換來了感情承諾。',
+  },
+  {
+    title: '揭露二：投資被包裝成兩人的未來',
+    body: '她把入金說成旅行基金，讓玩家感覺自己不是在投資，而是在替兩人的未來努力。',
+  },
+  {
+    title: '揭露三：未說出口的想像最容易讓人失去判斷',
+    body: '民宿、雙人房、兩人獨處及旅行畫面，讓玩家自行補足未明說的親密想像。',
+  },
+  {
+    title: '揭露四：已經投入越多，越難停下來',
+    body: '出金失敗後，平台以驗證金為由要求追加付款，Emily 則用已投入的金額與訂房承諾，讓玩家不願停止。',
+  },
+  {
+    title: '揭露五：拒絕付款，被包裝成拒絕感情',
+    body: '「我都訂好了」、「我會在那裡等你」及「我們好不容易走到這裡」，都在把拒絕付款轉化成拒絕兩人的關係。',
+  },
 ];
 
 export function RiskAnalysis() {
   useSaveScenario02Progress('/scenario02-romance/risk-analysis');
   return (
     <>
-      <section className="hero">
-        <h1>AI 偵測到多項高風險特徵</h1>
+      <section className="hero bition-disclosure-hero">
+        <h1>你不是因為貪心才按下去</h1>
+        <p>你相信的不是平台。是 Emily 所描繪的見面、旅行、親密關係，以及兩個人的未來。</p>
       </section>
-      {RISKS.map((r) => (
-        <Card key={r.title} className="risk-card">
-          <h2 style={{ fontSize: 20 }}>{r.title}</h2>
-          <p>{r.body}</p>
+      {DISCLOSURES.map((d) => (
+        <Card key={d.title} className="risk-card">
+          <h2 style={{ fontSize: 20 }}>{d.title}</h2>
+          <p>{d.body}</p>
         </Card>
       ))}
+      <Card className="bition-disclosure-final">
+        <p>
+          任何把感情、見面或共同未來與投資入金綁在一起的關係，都應立即提高警覺。真正想見你的人，不會要求你先用金錢證明感情。
+        </p>
+      </Card>
       <ButtonGroup>
         <Button to="/scenario02-romance/quiz">進行情境測驗</Button>
       </ButtonGroup>

@@ -1,120 +1,37 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TopBar } from '../../shell/TopBar';
-import { Platform, Stat } from '../../components/ui/Platform';
-import { Button } from '../../components/ui/Button';
-import { Modal } from '../../components/ui/Modal';
-import { useSaveScenario02Progress } from '../../lib/scenario02Store';
+import { useStageClassName } from '../../shell/StageClassContext';
+import { useSaveScenario02Progress, switchToLine } from '../../lib/scenario02Store';
 
-const ACTIVATION_STEPS = ['掃描市場趨勢', '分析成交量', '偵測買入訊號', '建立 SOL 部位'];
-const ASSET_STEPS = [315.0, 328.6, 351.2, 389.8, 426.45];
-const TRADES = [
-  { side: 'BUY', pct: '+4.32%' },
-  { side: 'SELL', pct: '+6.88%' },
-  { side: 'BUY', pct: '+9.41%' },
-];
-
+// Section 九 of the story: the strategy detail page reached after "查看策略"
+// on platform home and the LINE round trip that follows it. Its own
+// "立即啟用" button is the next switch-to-LINE trigger (section 十) - this
+// page never shows Emily, only the strategy's own numbers.
 export function TradingPage() {
   useSaveScenario02Progress('/scenario02-romance/trading');
+  useStageClassName('bition-stage');
   const navigate = useNavigate();
-  const [activationIndex, setActivationIndex] = useState(-1);
-  const [phase, setPhase] = useState('activating');
-  const [assetIndex, setAssetIndex] = useState(0);
-  const [showUpsell, setShowUpsell] = useState(false);
-  const [upsellSeen, setUpsellSeen] = useState(false);
 
-  useEffect(() => {
-    if (phase !== 'activating') return undefined;
-    if (activationIndex >= ACTIVATION_STEPS.length - 1) {
-      const t = setTimeout(() => setPhase('running'), 700);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => setActivationIndex((i) => i + 1), 650);
-    return () => clearTimeout(t);
-  }, [phase, activationIndex]);
-
-  useEffect(() => {
-    if (phase !== 'running') return undefined;
-    if (assetIndex >= ASSET_STEPS.length - 1) {
-      const t = setTimeout(() => setShowUpsell(true), 1400);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => setAssetIndex((i) => i + 1), 1100);
-    return () => clearTimeout(t);
-  }, [phase, assetIndex]);
-
-  const finished = phase === 'running' && assetIndex >= ASSET_STEPS.length - 1;
-  const tradesShown = Math.min(assetIndex, TRADES.length);
-
-  function dismissUpsell() {
-    setShowUpsell(false);
-    setUpsellSeen(true);
+  function activate() {
+    switchToLine(navigate, { page: 'strategy', selectedStrategy: 'ai-arbitrage' });
   }
 
   return (
-    <>
-      <TopBar brand="NOVA QUANT" />
-      <Platform>
-        {phase === 'activating' && (
-          <>
-            <h2>正在分析市場……</h2>
-            <ul className="step-status-list">
-              {ACTIVATION_STEPS.map((step, i) => (
-                <li key={step} className={i <= activationIndex ? 'done' : ''}>
-                  <span className="dot" /> {step}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-
-        {phase === 'running' && (
-          <>
-            <h2>{finished ? '策略執行中' : '正在建立部位……'}</h2>
-            <div className="asset-row">
-              <div>
-                <span className="mini">總資產</span>
-                <div className="big-money">{ASSET_STEPS[assetIndex].toFixed(2)} USDT</div>
-              </div>
-              {finished && <div className="profit-badge">+111.45 USDT</div>}
-            </div>
-            {tradesShown > 0 && (
-              <div className="platform" style={{ marginTop: 12 }}>
-                {TRADES.slice(0, tradesShown).map((t, i) => (
-                  <Stat key={i} label={`SOL / USDT　${t.side}`} value={`收益：${t.pct}`} />
-                ))}
-              </div>
-            )}
-            {finished && (
-              <>
-                <Stat label="今日收益" value="+111.45 USDT（約 NT$3,538）" />
-                <div className="tip-inline" style={{ background: 'rgba(255,255,255,.06)', color: 'var(--muted)', border: '1px solid var(--line)' }}>
-                  Emily：有看到嗎？今天的訊號滿準的😊
-                </div>
-                {upsellSeen && (
-                  <Button onClick={() => navigate('/scenario02-romance/withdrawal')}>申請出金</Button>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </Platform>
-
-      <Modal show={showUpsell}>
-        <div className="card">
-          <h2>限時策略升級</h2>
-          <p>再入金 20,000 元，即可解鎖進階策略。預估收益提升至 12.8%。</p>
-          <div className="tip-inline" style={{ background: 'rgba(255,255,255,.06)', color: 'var(--muted)', border: '1px solid var(--line)', marginBottom: 12 }}>
-            Emily：你不要一次放太多啦。先確認自己可以接受比較重要。
-          </div>
-          <p className="mini">系統建議：先完成首次提領驗證。</p>
-          <div className="btns">
-            <button className="btn secondary" type="button" onClick={dismissUpsell}>先提領看看</button>
-            <button className="btn secondary" type="button" onClick={dismissUpsell}>暫時不要</button>
-            <button className="btn" type="button" onClick={dismissUpsell}>立即加碼</button>
-          </div>
+    <div className="bition-app">
+      <header className="bition-sub-header">
+        <div className="bition-home-logo small">幣勝客 <span>BITION</span></div>
+      </header>
+      <div className="bition-home-scroll">
+        <div className="bition-card">
+          <h2 className="bition-section-title">AI 智能套利策略</h2>
+          <p className="mini">系統透過全球市場價差，自動執行套利配置。</p>
+          <div className="bition-stat-row"><span>策略市場</span><strong>全球多市場套利</strong></div>
+          <div className="bition-stat-row"><span>預估日收益</span><strong>2.8%–6.5%</strong></div>
+          <div className="bition-stat-row"><span>策略週期</span><strong>24 小時自動運行</strong></div>
+          <div className="bition-stat-row"><span>最低啟用金額</span><strong>10,000 CIBDT</strong></div>
+          <div className="bition-stat-row"><span>結算資產</span><strong>CIBDT</strong></div>
+          <button type="button" className="bition-btn-primary" onClick={activate}>立即啟用</button>
         </div>
-      </Modal>
-    </>
+      </div>
+    </div>
   );
 }

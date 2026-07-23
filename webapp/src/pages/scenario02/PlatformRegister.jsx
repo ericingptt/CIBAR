@@ -1,67 +1,105 @@
 import { useState } from 'react';
-import { TopBar } from '../../shell/TopBar';
-import { Platform, Stat } from '../../components/ui/Platform';
-import { Button } from '../../components/ui/Button';
-import { useSaveScenario02Progress } from '../../lib/scenario02Store';
+import { useNavigate } from 'react-router-dom';
+import { useStageClassName } from '../../shell/StageClassContext';
+import { useSaveScenario02Progress, savePlatformState } from '../../lib/scenario02Store';
 
 export function PlatformRegister() {
   useSaveScenario02Progress('/scenario02-romance/platform-register');
+  useStageClassName('bition-stage');
+  const navigate = useNavigate();
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [agreed, setAgreed] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
   const [status, setStatus] = useState('form');
 
   function createAccount() {
     setStatus('creating');
-    setTimeout(() => setStatus('done'), 1000);
+    setTimeout(() => {
+      setStatus('done');
+      savePlatformState({
+        registrationCompleted: true,
+        termsAccepted: true,
+        accountCreated: true,
+        page: 'home',
+      });
+      setTimeout(() => navigate('/scenario02-romance/platform-home'), 800);
+    }, 900);
   }
 
+  const canSubmit = agreed && phone.trim().length > 0 && password.length > 0 && confirm.length > 0;
+
   return (
-    <>
-      <TopBar brand="NOVA QUANT" />
-      <Platform>
-        <h2>會員註冊</h2>
-        <p className="mini">AI Digital Asset Strategy</p>
-        <Stat label="使用者名稱" value="guest_0218" />
-        <Stat label="密碼" value="••••••••" />
-        <Stat label="確認密碼" value="••••••••" />
-        <Stat label="推薦碼（不可修改）" value="EMILY88" />
+    <div className="bition-app">
+      <div className="bition-register-scroll">
+        <div className="bition-logo-block">
+          <div className="bition-logo">
+            幣勝客
+            <span>BITION</span>
+          </div>
+          <p className="bition-tagline">AI 智能數位資產交易</p>
+        </div>
 
-        {status === 'form' && (
-          <>
-            <label style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '16px 0', fontSize: 15, color: 'var(--muted)' }}>
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
-              我已閱讀
-              <button
-                type="button"
-                onClick={() => setShowTerms((v) => !v)}
-                style={{ background: 'none', border: 0, color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
-              >
-                服務條款
-              </button>
+        {status !== 'done' && (
+          <div className="bition-form">
+            <label className="bition-field">
+              <span>手機號碼</span>
+              <input
+                type="tel"
+                inputMode="numeric"
+                placeholder="請輸入手機號碼"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </label>
-            {showTerms && (
-              <div className="tip-inline" style={{ background: 'rgba(255,255,255,.06)', color: 'var(--muted)', border: '1px solid var(--line)' }}>
-                「平台將依據市場狀況提供數位資產服務。相關收益依照系統策略呈現。」
-                <div style={{ marginTop: 8, color: '#ffd166' }}>
-                  ⚠ AI 提示：條款內容模糊，未清楚標示公司、監管機構與風險。
-                </div>
-              </div>
+            <label className="bition-field">
+              <span>登入密碼</span>
+              <input
+                type="password"
+                placeholder="請設定登入密碼"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+            <label className="bition-field">
+              <span>確認密碼</span>
+              <input
+                type="password"
+                placeholder="請再次輸入密碼"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+              />
+            </label>
+            <label className="bition-field">
+              <span>推薦碼</span>
+              <input type="text" value="EMILY88" readOnly />
+            </label>
+
+            <button type="button" className="consent-row" onClick={() => setAgreed((v) => !v)}>
+              <span className="consent-mark">{agreed ? '✓' : '○'}</span>
+              <span>我已閱讀並同意《使用者服務協議》與《風險揭露聲明》</span>
+            </button>
+
+            {status === 'form' && (
+              <button type="button" className="bition-btn-primary" disabled={!canSubmit} onClick={createAccount}>
+                建立帳戶
+              </button>
             )}
-            <Button onClick={createAccount} disabled={!agreed} style={{ opacity: agreed ? 1 : 0.5 }}>
-              立即建立帳戶
-            </Button>
-          </>
-        )}
-
-        {status === 'creating' && <p>正在建立帳戶……</p>}
-
-        {status === 'done' && (
-          <div style={{ marginTop: 16 }}>
-            <p>✅ 帳戶建立成功</p>
-            <Button to="/scenario02-romance/platform-home">進入平台首頁</Button>
+            {status === 'creating' && (
+              <button type="button" className="bition-btn-primary" disabled>
+                建立中……
+              </button>
+            )}
           </div>
         )}
-      </Platform>
-    </>
+
+        {status === 'done' && (
+          <div className="bition-success">
+            <div className="bition-success-check">✓</div>
+            <p>帳戶建立成功</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

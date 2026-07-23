@@ -26,9 +26,11 @@ import { DatingChat } from './pages/scenario02/DatingChat';
 import { PrivateChat } from './pages/scenario02/PrivateChat';
 import { PlatformRegister as RomancePlatformRegister } from './pages/scenario02/PlatformRegister';
 import { PlatformHome } from './pages/scenario02/PlatformHome';
+import { DepositWarning } from './pages/scenario02/DepositWarning';
 import { DepositPage } from './pages/scenario02/DepositPage';
 import { TradingPage } from './pages/scenario02/TradingPage';
 import { WithdrawalPage } from './pages/scenario02/WithdrawalPage';
+import { TopupWarning } from './pages/scenario02/TopupWarning';
 import { GuaranteePage } from './pages/scenario02/GuaranteePage';
 import { RiskAnalysis as RomanceRiskAnalysis } from './pages/scenario02/RiskAnalysis';
 import { Quiz as RomanceQuiz } from './pages/scenario02/Quiz';
@@ -68,9 +70,11 @@ export const routes = [
       { path: 'scenario02-romance/private-chat', element: <PrivateChat /> },
       { path: 'scenario02-romance/platform-register', element: <RomancePlatformRegister /> },
       { path: 'scenario02-romance/platform-home', element: <PlatformHome /> },
+      { path: 'scenario02-romance/deposit-warning', element: <DepositWarning /> },
       { path: 'scenario02-romance/deposit', element: <DepositPage /> },
       { path: 'scenario02-romance/trading', element: <TradingPage /> },
       { path: 'scenario02-romance/withdrawal', element: <WithdrawalPage /> },
+      { path: 'scenario02-romance/topup-warning', element: <TopupWarning /> },
       { path: 'scenario02-romance/guarantee', element: <GuaranteePage /> },
       { path: 'scenario02-romance/risk-analysis', element: <RomanceRiskAnalysis /> },
       { path: 'scenario02-romance/quiz', element: <RomanceQuiz /> },

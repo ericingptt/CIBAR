@@ -354,3 +354,128 @@
 .line-video-error{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:0 32px;color:#fff;font-size:16px;font-weight:600;background:rgba(0,0,0,.7)}
 .line-video-error-btn{width:220px;border:0;border-radius:12px;height:46px;font-size:15px;font-weight:700;cursor:pointer;background:#fff;color:#111}
 .line-video-error-btn.secondary{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.4)}
+
+/* ---- 幣勝客 BITION investment platform (scenario02, Day13+) --------------
+   Same "measure against the .ar-stage box, not the real viewport" approach
+   as .tanu-stage/.line-app above - a dark, mobile-portrait crypto-app frame
+   centered inside the shared 16:9 stage. Emily never appears anywhere in
+   here; every hand-off to/from LINE is a full route change, not an overlay. */
+.ar-stage.bition-stage{padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 0%,#0d2a4a 0%,#050d1c 55%,#020610 100%)}
+.bition-app{
+  width:min(430px,100%);
+  height:min(844px,100%);
+  max-width:100%;
+  max-height:100%;
+  border-radius:30px;
+  overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.4);
+  background:#050d1c;
+  color:#eef6ff;
+  font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;
+  display:flex;
+  flex-direction:column;
+}
+.bition-home-scroll,.bition-register-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:16px 16px 24px}
+.bition-home-scroll::-webkit-scrollbar,.bition-register-scroll::-webkit-scrollbar{display:none}
+
+.bition-logo-block{text-align:center;margin:36px 0 28px}
+.bition-logo{font-size:30px;font-weight:900;letter-spacing:.04em;color:#fff;display:flex;flex-direction:column;line-height:1.2}
+.bition-logo span{font-size:15px;font-weight:700;letter-spacing:.25em;color:#25d0ff;margin-top:2px}
+.bition-tagline{color:#8ea3c2;font-size:14px;margin-top:10px}
+
+.bition-home-header,.bition-sub-header{flex:none;display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(5,13,28,.9)}
+.bition-home-logo{font-weight:900;font-size:17px;letter-spacing:.03em;color:#fff;display:flex;align-items:baseline;gap:6px}
+.bition-home-logo span{font-size:11px;font-weight:700;letter-spacing:.2em;color:#25d0ff}
+.bition-home-logo.small{font-size:15px}
+.bition-home-icons{display:flex;gap:10px}
+.bition-home-icons button{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#cfe0f5;display:grid;place-items:center;cursor:pointer}
+
+.bition-card{background:linear-gradient(165deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:18px;margin-bottom:14px;backdrop-filter:blur(14px);box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.bition-section-title{font-size:19px;margin:0 0 12px;color:#fff}
+
+.bition-asset-card{position:relative;overflow:hidden;background:linear-gradient(160deg,rgba(37,208,255,.16),rgba(5,13,28,.4) 60%);border:1px solid rgba(37,208,255,.28)}
+.bition-asset-card:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 0 35%,rgba(37,208,255,.14) 48%,transparent 62%);animation:chartSweep 6s ease-out infinite;pointer-events:none}
+.bition-asset-label{color:#9db4d4;font-size:13px}
+.bition-asset-value{font-size:34px;font-weight:900;color:#fff;margin-top:6px;letter-spacing:.01em}
+.bition-asset-value span{font-size:15px;font-weight:700;color:#25d0ff;margin-left:4px}
+.bition-asset-value.large{font-size:30px;text-align:center;margin:10px 0}
+.bition-asset-sub{color:#8ea3c2;font-size:13px;margin-top:2px}
+.bition-asset-profit{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);font-size:14px;color:#9db4d4}
+.bition-asset-profit strong{color:#eef6ff;font-weight:800}
+.bition-asset-profit strong.up,.up{color:#39d98a}
+.bition-quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.bition-quick-action{border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 4px;text-align:center;font-size:13px;color:#9db4d4;background:rgba(255,255,255,.03)}
+
+.bition-strategy-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.bition-strategy-name{font-weight:800;font-size:16px;color:#fff}
+.bition-strategy-desc{color:#8ea3c2;font-size:13px;margin-top:2px}
+.bition-status-pill{flex:none;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);color:#9db4d4;border:1px solid rgba(255,255,255,.14)}
+.bition-status-pill.running{background:rgba(57,217,138,.16);color:#39d98a;border-color:rgba(57,217,138,.4)}
+.bition-strategy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
+.bition-strategy-grid div{background:rgba(255,255,255,.04);border-radius:12px;padding:10px 8px;text-align:center}
+.bition-strategy-grid span{display:block;color:#8ea3c2;font-size:11px;margin-bottom:4px}
+.bition-strategy-grid strong{font-size:13px;color:#eef6ff}
+
+.bition-pools{display:grid;gap:10px}
+.bition-pool-card{padding:14px 16px;margin-bottom:0}
+.bition-pool-name{font-weight:700;font-size:14px;color:#fff;margin-bottom:8px}
+.bition-pool-row{display:flex;justify-content:space-between;font-size:13px;color:#8ea3c2;padding:3px 0}
+.bition-pool-row strong{color:#eef6ff}
+
+.bition-stat-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:14px;color:#9db4d4}
+.bition-stat-row strong{color:#eef6ff;font-weight:700}
+
+.bition-bottom-nav{flex:none;display:flex;justify-content:space-around;align-items:center;height:calc(58px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(5,13,28,.95);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.08)}
+.bition-bottom-nav button{background:none;border:0;color:#7f93b3;font-size:12px;font-weight:600;padding:6px 10px;cursor:pointer}
+.bition-bottom-nav button.active{color:#25d0ff}
+
+.bition-form{display:flex;flex-direction:column;gap:14px}
+.bition-field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#9db4d4}
+.bition-field input{height:50px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#fff;padding:0 14px;font-size:15px}
+.bition-field input:read-only{color:#8ea3c2}
+
+.consent-row{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:12px 14px;color:#eef6ff;text-align:left;cursor:pointer;font-size:14px;line-height:1.5}
+.consent-mark{flex:none;font-size:20px;color:#25d0ff;width:22px;text-align:center}
+
+.bition-btn-primary{appearance:none;border:0;border-radius:16px;padding:16px 18px;background:linear-gradient(135deg,#23c7ff,#5578ff);color:#fff;font-size:16px;font-weight:800;cursor:pointer;width:100%;margin-top:6px}
+.bition-btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.bition-btn-danger{background:linear-gradient(135deg,#ff4d6d,#a9183c)}
+.bition-btn-secondary{appearance:none;border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:16px 18px;background:rgba(255,255,255,.06);color:#eef6ff;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:10px}
+.bition-btn-secondary:disabled{opacity:.4;cursor:not-allowed}
+
+.bition-success{text-align:center;margin-top:60px}
+.bition-success-check{width:64px;height:64px;border-radius:50%;background:rgba(57,217,138,.16);border:1px solid rgba(57,217,138,.5);color:#39d98a;font-size:30px;display:grid;place-items:center;margin:0 auto 16px}
+.bition-success p{color:#eef6ff;font-size:16px;font-weight:700}
+
+.bition-processing{text-align:center;color:#9db4d4;font-size:15px;margin:24px 0}
+.bition-deposit-success{text-align:center}
+.bition-success-line{color:#39d98a;font-weight:800;font-size:16px;margin-bottom:4px}
+.bition-fake-chart{margin:14px 0}
+.bition-sim-note{text-align:center;margin-top:12px}
+
+.bition-withdraw-failed h3{color:#ff8fa3;font-size:18px;margin:0 0 8px}
+.bition-withdraw-failed p{color:#c9d6ea}
+
+.bition-warning{background:#19040a;text-align:left}
+.bition-warning-icon{color:var(--danger);margin-bottom:10px}
+.bition-warning h2{color:#fff}
+.bition-warning p{color:#e7c7cf}
+.bition-warning-emphasis{color:#ff8fa3;font-weight:800;margin-top:12px}
+
+.bition-disclosure-hero{background:#19040a;border:1px solid var(--danger)}
+.bition-disclosure-final{background:rgba(255,77,109,.08);border:1px solid var(--danger)}
+.bition-disclosure-final p{color:#f5d9df;font-weight:600}
+
+/* LINE guesthouse photo placeholders - real assets to be supplied later
+   (see project report); onError in PrivateChat.jsx falls back to this
+   label box so the story reads correctly even before a real photo exists. */
+.line-photo-thumb{width:220px;height:160px;padding:0;overflow:hidden;display:block}
+.line-photo-img{width:100%;height:100%;object-fit:cover;display:block}
+.line-photo-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font-size:13px;color:#8ea3c2;background:repeating-linear-gradient(45deg,#0c1626,#0c1626 10px,#0f1b2e 10px,#0f1b2e 20px)}
+.line-photo-lightbox-card{padding:0;width:min(360px,100%);overflow:hidden}
+.line-photo-img-large{width:100%;display:block}
+.line-photo-placeholder-large{min-height:240px}
+
+.link-card-badge{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#25d0ff,#5578ff);color:#04101f;font-weight:900;display:grid;place-items:center;margin-bottom:8px}
+.link-title{color:#f5f8fc;font-weight:700;margin-top:2px}
+.link-card-cta{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:#36d6c6;font-weight:700;font-size:13px}

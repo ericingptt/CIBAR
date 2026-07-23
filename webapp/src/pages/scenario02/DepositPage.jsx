@@ -1,86 +1,87 @@
-import { useState } from 'react';
-import { TopBar } from '../../shell/TopBar';
-import { Platform, Stat } from '../../components/ui/Platform';
-import { Button } from '../../components/ui/Button';
-import { useSaveScenario02Progress } from '../../lib/scenario02Store';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useStageClassName } from '../../shell/StageClassContext';
+import { useSaveScenario02Progress, switchToLine } from '../../lib/scenario02Store';
+import { useCountUp } from '../../lib/useCountUp';
 
-const AMOUNTS = [
-  { twd: 3000, usdt: 94 },
-  { twd: 5000, usdt: 157 },
-  { twd: 10000, usdt: 315 },
-];
-
+// Section 十二/十三: purely simulated deposit - no real bank account, wallet
+// address, QR code, or transfer instructions anywhere on this page.
 export function DepositPage() {
   useSaveScenario02Progress('/scenario02-romance/deposit');
-  const [method, setMethod] = useState('twd');
-  const [amountIndex, setAmountIndex] = useState(2);
+  useStageClassName('bition-stage');
+  const navigate = useNavigate();
   const [status, setStatus] = useState('form');
-  const amount = AMOUNTS[amountIndex];
+  const [animatedTarget, setAnimatedTarget] = useState(0);
+  const balance = useCountUp(animatedTarget, 1400);
 
   function confirmDeposit() {
-    setStatus('confirming');
-    setTimeout(() => setStatus('done'), 1500);
+    setStatus('processing');
+    setTimeout(() => {
+      setStatus('success');
+      setAnimatedTarget(10000);
+    }, 1200);
   }
 
+  useEffect(() => {
+    if (status !== 'success') return undefined;
+    const t = setTimeout(() => {
+      switchToLine(navigate, {
+        depositCompleted: true,
+        selectedStrategy: 'ai-arbitrage',
+        balance: 10000,
+        profit: 0,
+        platformStep: 'running',
+        page: 'deposit-success',
+      });
+    }, 2400);
+    return () => clearTimeout(t);
+  }, [status, navigate]);
+
   return (
-    <>
-      <TopBar brand="NOVA QUANT" />
-      <Platform>
-        <h2>資產入金</h2>
+    <div className="bition-app">
+      <header className="bition-sub-header">
+        <div className="bition-home-logo small">幣勝客 <span>BITION</span></div>
+      </header>
+      <div className="bition-home-scroll">
+        <div className="bition-card">
+          <h2 className="bition-section-title">啟用 AI 智能套利策略</h2>
 
-        {status === 'form' && (
-          <>
-            <div className="btns" style={{ gridTemplateColumns: '1fr 1fr' }}>
-              <button className={`btn ${method === 'twd' ? '' : 'secondary'}`} type="button" onClick={() => setMethod('twd')}>
-                台幣快捷入金
-              </button>
-              <button className={`btn ${method === 'usdt' ? '' : 'secondary'}`} type="button" onClick={() => setMethod('usdt')}>
-                USDT 入金
-              </button>
-            </div>
+          {status === 'form' && (
+            <>
+              <div className="bition-stat-row"><span>入金金額</span><strong>10,000 CIBDT</strong></div>
+              <div className="bition-stat-row"><span>換算</span><strong>約 NT$10,000</strong></div>
+              <button type="button" className="bition-btn-primary" onClick={confirmDeposit}>模擬完成入金</button>
+              <p className="mini bition-sim-note">此為情境模擬，不會產生真實交易，亦無任何真實付款功能。</p>
+            </>
+          )}
 
-            {method === 'twd' && (
-              <>
-                <div className="btns" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginTop: 16 }}>
-                  {AMOUNTS.map((a, i) => (
-                    <button
-                      key={a.twd}
-                      type="button"
-                      className={`btn ${i === amountIndex ? '' : 'secondary'}`}
-                      onClick={() => setAmountIndex(i)}
-                    >
-                      NT${a.twd.toLocaleString()}
-                    </button>
-                  ))}
-                </div>
-                <Stat label="預計到帳" value={`約 ${amount.usdt} USDT`} />
-              </>
-            )}
+          {status === 'processing' && <p className="bition-processing">入金處理中……</p>}
 
-            {method === 'usdt' && (
-              <div className="shot-card" style={{ margin: '16px 0' }}>
-                <div className="shot-brand">模擬錢包地址</div>
-                <div style={{ margin: '8px 0', fontFamily: 'monospace' }}>TRX9••••••••DEMO</div>
-                <div style={{ color: 'var(--danger)', fontSize: 13 }}>僅供反詐教育模擬，不可轉帳。</div>
+          {status === 'success' && (
+            <div className="bition-deposit-success">
+              <p className="bition-success-line">入金成功</p>
+              <div className="bition-asset-value large">{balance.toFixed(2)} <span>CIBDT</span> 已到帳</div>
+              <div className="bition-status-pill running">運行中</div>
+              <div className="bition-fake-chart">
+                <svg viewBox="0 0 200 60" className="candlestick-chart">
+                  <defs>
+                    <linearGradient id="depositChartGlow" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#25d0ff" />
+                      <stop offset="100%" stopColor="#39d98a" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    className="trend-line"
+                    style={{ stroke: 'url(#depositChartGlow)' }}
+                    d="M4,48 L30,40 L58,44 L86,28 L114,32 L142,16 L170,20 L196,6"
+                  />
+                </svg>
               </div>
-            )}
-
-            <Button onClick={confirmDeposit}>確認入金</Button>
-            <p className="mini" style={{ marginTop: 12, textAlign: 'center' }}>
-              此為情境模擬，不會產生真實交易。
-            </p>
-          </>
-        )}
-
-        {status === 'confirming' && <p>正在確認交易……</p>}
-
-        {status === 'done' && (
-          <div style={{ marginTop: 16 }}>
-            <p>✅ 入金成功</p>
-            <Button to="/scenario02-romance/trading">前往策略頁面</Button>
-          </div>
-        )}
-      </Platform>
-    </>
+              <p className="mini">首次結算倒數：23:59:42</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
