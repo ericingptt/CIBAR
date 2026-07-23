@@ -13,6 +13,17 @@ const POOLS = [
   { name: '智能網格池', change: '+4.15%', nodes: 32 },
 ];
 
+// Fictional, constantly-scrolling "recent executions" feed - purely a
+// visual simulation (no real trade data, no real coin names) that makes the
+// home screen read as "actively running" rather than a static page.
+const TICKER_ROWS = [
+  '20:31:12　跨市場價差捕捉　+12.6 CIBDT',
+  '20:31:08　智能網格結算　　+8.2 CIBDT',
+  '20:30:54　全球趨勢套利　　+16.4 CIBDT',
+  '20:30:41　跨市場價差捕捉　+9.8 CIBDT',
+  '20:30:22　智能網格結算　　+11.3 CIBDT',
+];
+
 // Every step after 'idle' has already been through the first deposit; the
 // two "stageN" steps are the moments Emily proactively messages about
 // profit having grown, per the story script - the player never has to
@@ -74,8 +85,21 @@ export function PlatformHome() {
               <div className="bition-asset-sub">≈ NT${Math.round(balance).toLocaleString()}</div>
               <div className="bition-asset-profit">
                 <span>今日收益</span>
-                <strong className={profit > 0 ? 'up' : ''}>{profit.toFixed(2)} CIBDT</strong>
+                <strong className={profit > 0 ? 'up bition-pulse' : ''}>{profit.toFixed(2)} CIBDT</strong>
               </div>
+              <svg viewBox="0 0 200 40" className="bition-asset-trend" aria-hidden="true">
+                <defs>
+                  <linearGradient id="homeChartGlow" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#25d0ff" />
+                    <stop offset="100%" stopColor="#39d98a" />
+                  </linearGradient>
+                </defs>
+                <path
+                  className="trend-line bition-trend-line"
+                  style={{ stroke: 'url(#homeChartGlow)' }}
+                  d="M4,32 L30,26 L58,29 L86,18 L114,22 L142,10 L170,14 L196,4"
+                />
+              </svg>
               <div className="bition-quick-actions">
                 {['入金', '提領', '轉換', '紀錄'].map((label) => (
                   <div key={label} className="bition-quick-action" aria-disabled="true">
@@ -110,11 +134,22 @@ export function PlatformHome() {
             <div className="bition-pools">
               {POOLS.map((p) => (
                 <div key={p.name} className="bition-card bition-pool-card">
-                  <div className="bition-pool-name">{p.name}</div>
+                  <div className="bition-pool-name"><span className="bition-node-dot" />{p.name}</div>
                   <div className="bition-pool-row"><span>今日收益</span><strong className="up">{p.change}</strong></div>
                   <div className="bition-pool-row"><span>運行節點</span><strong>{p.nodes}</strong></div>
                 </div>
               ))}
+            </div>
+
+            <div className="bition-card bition-ticker-card">
+              <div className="bition-section-title small">即時策略執行紀錄</div>
+              <div className="bition-ticker">
+                <div className="bition-ticker-track">
+                  {[...TICKER_ROWS, ...TICKER_ROWS].map((row, i) => (
+                    <div className="bition-ticker-row" key={i}>{row}</div>
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         )}

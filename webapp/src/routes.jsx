@@ -24,6 +24,7 @@ import { DatingBrowse } from './pages/scenario02/DatingBrowse';
 import { DatingMatch } from './pages/scenario02/DatingMatch';
 import { DatingChat } from './pages/scenario02/DatingChat';
 import { PrivateChat } from './pages/scenario02/PrivateChat';
+import { PlatformLanding } from './pages/scenario02/PlatformLanding';
 import { PlatformRegister as RomancePlatformRegister } from './pages/scenario02/PlatformRegister';
 import { PlatformHome } from './pages/scenario02/PlatformHome';
 import { DepositWarning } from './pages/scenario02/DepositWarning';
@@ -68,6 +69,7 @@ export const routes = [
       { path: 'scenario02-romance/dating-match', element: <DatingMatch /> },
       { path: 'scenario02-romance/dating-chat', element: <DatingChat /> },
       { path: 'scenario02-romance/private-chat', element: <PrivateChat /> },
+      { path: 'scenario02-romance/platform-landing', element: <PlatformLanding /> },
       { path: 'scenario02-romance/platform-register', element: <RomancePlatformRegister /> },
       { path: 'scenario02-romance/platform-home', element: <PlatformHome /> },
       { path: 'scenario02-romance/deposit-warning', element: <DepositWarning /> },

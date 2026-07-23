@@ -18,7 +18,6 @@ export function DepositWarning() {
           title="防詐風險提醒"
           body="網路交友對象若將投資、入金或共同未來綁在一起，可能正在利用感情降低您的警覺。「一起存旅行基金」、「為我們的未來努力」及「投資後就能見面」，都是常見的情感誘導方式。"
           emphasis="真正的感情，不需要用入金證明。"
-          ackLabel="我已了解：感情承諾不代表投資平台可信"
           primaryLabel="停止入金"
           secondaryLabel="我知道有風險，繼續體驗"
           correctText="你選擇停止入金。感情承諾不能證明投資平台的安全性。"

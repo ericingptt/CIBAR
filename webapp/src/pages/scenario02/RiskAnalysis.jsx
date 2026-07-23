@@ -1,6 +1,7 @@
 import { Card } from '../../components/ui/Card';
 import { ButtonGroup } from '../../components/ui/ButtonGroup';
 import { Button } from '../../components/ui/Button';
+import { useStageClassName } from '../../shell/StageClassContext';
 import { useSaveScenario02Progress } from '../../lib/scenario02Store';
 
 const DISCLOSURES = [
@@ -26,28 +27,38 @@ const DISCLOSURES = [
   },
 ];
 
+// Same phone-frame width as LINE and 幣勝客 - this page previously rendered
+// full desktop width, which broke the immersion right at the story's most
+// important educational beat.
 export function RiskAnalysis() {
   useSaveScenario02Progress('/scenario02-romance/risk-analysis');
+  useStageClassName('bition-stage');
   return (
-    <>
-      <section className="hero bition-disclosure-hero">
-        <h1>你不是因為貪心才按下去</h1>
-        <p>你相信的不是平台。是 Emily 所描繪的見面、旅行、親密關係，以及兩個人的未來。</p>
-      </section>
-      {DISCLOSURES.map((d) => (
-        <Card key={d.title} className="risk-card">
-          <h2 style={{ fontSize: 20 }}>{d.title}</h2>
-          <p>{d.body}</p>
+    <div className="bition-app">
+      <div className="bition-home-scroll">
+        <section className="hero bition-disclosure-hero">
+          <h1>你不是因為貪心才按下去</h1>
+          <p>你相信的不是平台。是 Emily 所描繪的見面、旅行、親密關係，以及兩個人的未來。</p>
+        </section>
+        {DISCLOSURES.map((d) => (
+          <Card key={d.title} className="risk-card">
+            <h2 style={{ fontSize: 20 }}>{d.title}</h2>
+            <p>{d.body}</p>
+          </Card>
+        ))}
+        <Card className="bition-disclosure-final">
+          <p>
+            任何把感情、見面或共同未來與投資入金綁在一起的關係，都應立即提高警覺。真正想見你的人，不會要求你先用金錢證明感情。
+          </p>
         </Card>
-      ))}
-      <Card className="bition-disclosure-final">
-        <p>
-          任何把感情、見面或共同未來與投資入金綁在一起的關係，都應立即提高警覺。真正想見你的人，不會要求你先用金錢證明感情。
-        </p>
-      </Card>
-      <ButtonGroup>
-        <Button to="/scenario02-romance/quiz">進行情境測驗</Button>
-      </ButtonGroup>
-    </>
+        <ButtonGroup>
+          <Button to="/scenario02-romance/quiz">進行情境測驗</Button>
+        </ButtonGroup>
+      </div>
+      <div className="bition-165-fixed-bar">
+        <span>疑似遭遇詐騙？</span>
+        <strong>撥打 165 查證</strong>
+      </div>
+    </div>
   );
 }
