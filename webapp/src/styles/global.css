@@ -205,6 +205,16 @@
 .tanu-swipe-btn.pass{background:#FFFFFF;color:var(--tanu-pass);border:1px solid var(--tanu-line)}
 .tanu-swipe-btn.like{background:var(--tanu-gradient);color:#fff}
 
+/* Emily skip-flow interstitials (someone-liked-you / reveal / simulation-required) */
+.tanu-interstitial{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 28px;gap:2px}
+.tanu-interstitial-icon{color:var(--tanu-primary);margin-bottom:14px}
+.tanu-interstitial h2{font-size:19px;font-weight:700;margin:0 0 10px}
+.tanu-interstitial p{font-size:14.5px;line-height:1.6;color:var(--tanu-text-2);margin:0 0 4px;max-width:320px}
+.tanu-interstitial-meta{color:var(--tanu-text-2);font-size:13.5px}
+.tanu-interstitial .profile-avatar{margin-bottom:14px}
+.tanu-interstitial .tanu-primary-btn,.tanu-interstitial .tanu-secondary-btn{width:min(280px,100%);margin:18px 0 0}
+.tanu-interstitial .tanu-secondary-btn{margin-top:10px}
+
 /* Match overlay */
 .tanu-match-overlay{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(15,15,20,.74);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);animation:tanuMatchFade 220ms ease-out;font-family:var(--tanu-font)}
 .tanu-match-avatars{display:flex;margin-bottom:6px}

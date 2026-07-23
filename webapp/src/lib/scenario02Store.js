@@ -64,3 +64,28 @@ export function markDatingCardResolved(id) {
     // localStorage unavailable - progress just won't persist.
   }
 }
+
+// How the player ended up talking to Emily - null (not reached yet),
+// 'liked' (swiped her directly), 'reconsidered' (skipped her, then looked
+// at her "someone liked you" notice and opened the chat anyway), or
+// 'simulation' (skipped her and explicitly declined, entering the
+// educational case-study path instead). DatingChat reads this to pick its
+// opening line/banner. Stored rather than passed only via router location
+// state, since location state doesn't survive a hard refresh.
+const EMILY_DECISION_KEY = 'cibar-scenario02-emily-decision';
+
+export function saveEmilyDecision(decision) {
+  try {
+    localStorage.setItem(EMILY_DECISION_KEY, decision);
+  } catch {
+    // ignore
+  }
+}
+
+export function getEmilyDecision() {
+  try {
+    return localStorage.getItem(EMILY_DECISION_KEY);
+  } catch {
+    return null;
+  }
+}

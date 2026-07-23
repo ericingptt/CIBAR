@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDialogueTree } from '../../lib/dialogueTree';
-import { useSaveScenario02Progress } from '../../lib/scenario02Store';
+import { useSaveScenario02Progress, getEmilyDecision } from '../../lib/scenario02Store';
 import { useStageClassName } from '../../shell/StageClassContext';
 import { ProfileAvatar } from './components/ProfileAvatar';
 import { SuggestedReplies } from './tanu/SuggestedReplies';
@@ -10,6 +10,11 @@ const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/ima
 
 const NODES = [
   { id: 'r1-ask', from: 'emily', text: '嗨～你今天過得怎麼樣？', next: 'r1-choice' },
+  // Alternate opening used only when the player originally passed on Emily
+  // and later reconsidered via her "someone liked you" notice - she reached
+  // out first, so the line has to read that way instead of the default
+  // "how's your day" opener. Same r1-choice onward, nothing else changes.
+  { id: 'r1-ask-initiated', from: 'emily', text: '嗨～剛剛看到你，覺得你好像滿好聊的😊', next: 'r1-choice' },
   {
     id: 'r1-choice',
     choice: true,
@@ -86,7 +91,15 @@ export function DatingChat() {
   useSaveScenario02Progress('/scenario02-romance/dating-chat');
   useStageClassName('tanu-stage');
   const navigate = useNavigate();
-  const { timeline, isTyping, pendingChoice, choose, done, endReason } = useDialogueTree(NODES, 'r1-ask');
+  // Read once - how the player got here doesn't change for the life of
+  // this page. Stored rather than read from router location state so a
+  // hard refresh mid-chat doesn't fall back to the wrong opening line.
+  const [decision] = useState(() => getEmilyDecision());
+  const simulationMode = decision === 'simulation';
+  const startId = decision === 'reconsidered' ? 'r1-ask-initiated' : 'r1-ask';
+  const { timeline, isTyping, pendingChoice, choose, done, endReason } = useDialogueTree(NODES, startId, {
+    startDelay: simulationMode ? 1000 : 0,
+  });
   // 'idle' -> 'tip' (shown right after joining LINE) -> 'ready' (tip
   // dismissed, either by the user or after ~4s, continue button revealed).
   const [joinPhase, setJoinPhase] = useState('idle');
@@ -125,6 +138,7 @@ export function DatingChat() {
         </div>
       </header>
       <div className="tanu-chat-scroll" ref={scrollRef}>
+        {simulationMode && <div className="tanu-msg system">以下內容為反詐騙案例模擬</div>}
         {timeline.map((item, i) => {
           if (item.from === 'system') {
             return <div key={i} className="tanu-msg system">{item.text}</div>;

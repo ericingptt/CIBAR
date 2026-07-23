@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 //   { id, video: { videoId, duration, lines: [...] }, next }
 //   { id, choice: true, options: [{ label, userText, reply, replyWait, typingWait, next }] }
 //   { id, end: true }
-export function useDialogueTree(nodes, startId) {
+export function useDialogueTree(nodes, startId, { startDelay = 0 } = {}) {
   const nodesById = useMemo(() => Object.fromEntries(nodes.map((n) => [n.id, n])), [nodes]);
   const [timeline, setTimeline] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -84,7 +84,7 @@ export function useDialogueTree(nodes, startId) {
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    advance(startId);
+    schedule(() => advance(startId), startDelay);
     return () => {
       timeoutsRef.current.forEach(clearTimeout);
     };
