@@ -7,6 +7,8 @@ import {
   savePrivateChatCheckpoint,
   takePrivateChatCheckpoint,
 } from '../../lib/scenario02Store';
+import { useChatClock, computeTimestamps, formatTime, formatDateDivider, addDays } from '../../lib/chatTime';
+import { IncomingMessage, OutgoingMessage } from '../../components/ui/Chat';
 import { useStageClassName } from '../../shell/StageClassContext';
 import { ProfileAvatar } from './components/ProfileAvatar';
 import { SafetyAlert } from './components/SafetyAlert';
@@ -22,19 +24,10 @@ const VIDEO_SRC = {
 const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/emily.webp`;
 
 // "Day N" node labels stay as internal ids (other nodes reference them via
-// `next`) - only the displayed text is converted to a plausible in-month
-// date, per the "this must look like LINE, not a game" note. Offsets are
-// real day-gaps from the original Day 1/3/5/7/10/12/15 spacing.
+// `next`) - only the displayed date is derived from the day the player
+// actually opened this chat (see chatStart below), offset by these same
+// day-gaps from the original Day 1/3/5/7/10/12/15 spacing.
 const DAY_OFFSETS = { 'Day 1': 0, 'Day 3': 2, 'Day 5': 4, 'Day 7': 6, 'Day 10': 9, 'Day 12': 11, 'Day 15': 14 };
-const DIVIDER_BASE_DATE = new Date(2026, 6, 10); // 2026-07-10
-const WEEKDAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-
-function formatDivider(label) {
-  const offset = DAY_OFFSETS[label] ?? 0;
-  const d = new Date(DIVIDER_BASE_DATE);
-  d.setDate(d.getDate() + offset);
-  return `${d.getMonth() + 1}月${d.getDate()}日 ${WEEKDAYS[d.getDay()]}`;
-}
 
 const NODES = [
   { id: 'join-sys', from: 'system', text: '你已加入 Emily 為好友', wait: 800, next: 'join-emily1' },
@@ -583,6 +576,12 @@ export function PrivateChat() {
   const [lightboxItem, setLightboxItem] = useState(null);
   const scrollRef = useRef(null);
 
+  // The moment the player opened this chat - fixed for the rest of this run
+  // (shares scenario02Store's 'cibar-scenario02-' key prefix, so resetScenario02()
+  // clears it too, and the next run gets a genuinely new "now").
+  const chatStart = useChatClock('cibar-scenario02-chat-clock');
+  const timestamps = useMemo(() => computeTimestamps(timeline, chatStart, DAY_OFFSETS), [timeline, chatStart]);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -642,15 +641,17 @@ export function PrivateChat() {
       </header>
       <div className="line-chat-scroll" ref={scrollRef} tabIndex={-1}>
         {timeline.map((item, i) => {
+          const time = timestamps[i] ? formatTime(timestamps[i]) : null;
           if (item.kind === 'divider') {
+            const dividerDate = addDays(chatStart, DAY_OFFSETS[item.label] ?? 0);
             return (
-              <div key={i} className="line-date-divider"><span>{formatDivider(item.label)}</span></div>
+              <div key={i} className="line-date-divider"><span>{formatDateDivider(dividerDate)}</span></div>
             );
           }
           if (item.kind === 'video') {
             const watched = watchedVideoIds.has(item.videoId);
             return (
-              <div key={i} className="line-msg-row them">
+              <IncomingMessage key={i} time={time}>
                 <VideoThumb
                   item={item}
                   onOpen={() => {
@@ -661,21 +662,21 @@ export function PrivateChat() {
                     }
                   }}
                 />
-              </div>
+              </IncomingMessage>
             );
           }
           if (item.kind === 'image') {
             return (
-              <div key={i} className="line-msg-row them">
+              <IncomingMessage key={i} time={time}>
                 <ImageThumb item={item} onOpen={() => setLightboxItem(item)} />
-              </div>
+              </IncomingMessage>
             );
           }
           if (item.kind === 'link') {
             return (
-              <div key={i} className="line-msg-row them">
+              <IncomingMessage key={i} time={time}>
                 <LinkCard item={item} active={Boolean(pendingLink)} onOpen={openLink} />
-              </div>
+              </IncomingMessage>
             );
           }
           if (item.kind === 'tip') {
@@ -685,10 +686,11 @@ export function PrivateChat() {
             return <div key={i} className="line-date-divider"><span>{item.text}</span></div>;
           }
           const mine = item.from === 'user';
-          return (
-            <div key={i} className={`line-msg-row${mine ? ' mine' : ' them'}`}>
-              <div className={`line-msg ${mine ? 'me' : 'them'}`}>{item.text}</div>
-            </div>
+          const bubble = <div className={`line-msg ${mine ? 'me' : 'them'}`}>{item.text}</div>;
+          return mine ? (
+            <OutgoingMessage key={i} time={time}>{bubble}</OutgoingMessage>
+          ) : (
+            <IncomingMessage key={i} time={time}>{bubble}</IncomingMessage>
           );
         })}
         {isTyping && <div className="tanu-typing"><i /><i /><i /></div>}
