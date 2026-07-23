@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Tracks which page the player last reached, purely for the reset checklist
 // below (resetScenario02() clears it along with everything else) - nothing
@@ -100,6 +100,68 @@ export function takePrivateChatCheckpoint() {
   } catch {
     return null;
   }
+}
+
+// Investment-platform progress, shared across every 幣勝客 BITION page and
+// restored on every LINE<->platform switch instead of living in page-local
+// state - matches the state shape the scenario requires to survive a full
+// unmount (route changes, not just this one component tree). sessionStorage
+// (not localStorage) so it resets with the rest of a scenario02 run.
+const PLATFORM_STATE_KEY = 'cibar-scenario02-platform-state';
+
+export const DEFAULT_PLATFORM_STATE = {
+  route: '/scenario02-romance/platform-home',
+  page: 'home',
+  scrollPosition: 0,
+  registrationCompleted: false,
+  termsAccepted: false,
+  accountCreated: false,
+  depositCompleted: false,
+  selectedStrategy: null,
+  platformStep: 'idle',
+  balance: 0,
+  profit: 0,
+  withdrawalStep: null,
+};
+
+export function getPlatformState() {
+  try {
+    const raw = sessionStorage.getItem(PLATFORM_STATE_KEY);
+    return raw ? { ...DEFAULT_PLATFORM_STATE, ...JSON.parse(raw) } : { ...DEFAULT_PLATFORM_STATE };
+  } catch {
+    return { ...DEFAULT_PLATFORM_STATE };
+  }
+}
+
+export function savePlatformState(patch) {
+  try {
+    const next = { ...getPlatformState(), ...patch };
+    sessionStorage.setItem(PLATFORM_STATE_KEY, JSON.stringify(next));
+    return next;
+  } catch {
+    return { ...DEFAULT_PLATFORM_STATE, ...patch };
+  }
+}
+
+// Read once per mount, kept as local state so a page can render immediately
+// and re-render as it patches fields - every patch is written straight
+// through to sessionStorage so a refresh or an unrelated remount never loses
+// progress.
+export function usePlatformState() {
+  const [state, setState] = useState(() => getPlatformState());
+  function update(patch) {
+    setState(() => savePlatformState(patch));
+  }
+  return [state, update];
+}
+
+// The one call every platform page makes to hand control back to Emily's
+// LINE chat: persist whatever platform progress needs to survive the trip,
+// then leave. PrivateChat itself decides where in the script to resume from
+// (see its own saved checkpoint) - this helper never needs to know that.
+export function switchToLine(navigate, patch = {}) {
+  savePlatformState(patch);
+  navigate('/scenario02-romance/private-chat');
 }
 
 // Every persisted scenario02 key shares this prefix (KEY/RESOLVED_KEY/

@@ -6,6 +6,7 @@ import {
   useSaveScenario02Progress,
   savePrivateChatCheckpoint,
   takePrivateChatCheckpoint,
+  savePlatformState,
 } from '../../lib/scenario02Store';
 import { useChatClock, computeTimestamps, formatTime, formatDateDivider, addDays } from '../../lib/chatTime';
 import { IncomingMessage, OutgoingMessage } from '../../components/ui/Chat';
@@ -27,7 +28,10 @@ const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/ima
 // `next`) - only the displayed date is derived from the day the player
 // actually opened this chat (see chatStart below), offset by these same
 // day-gaps from the original Day 1/3/5/7/10/12/15 spacing.
-const DAY_OFFSETS = { 'Day 1': 0, 'Day 3': 2, 'Day 5': 4, 'Day 7': 6, 'Day 10': 9, 'Day 12': 11, 'Day 15': 14 };
+const DAY_OFFSETS = { 'Day 1': 0, 'Day 3': 2, 'Day 5': 4, 'Day 7': 6, 'Day 10': 9, 'Day 12': 11, 'Day 13': 12, 'Day 15': 14 };
+
+const GUESTHOUSE_ROOM_IMG = `${import.meta.env.BASE_URL}assets/scenario2/guesthouse-room-placeholder.webp`;
+const GUESTHOUSE_BOOKING_IMG = `${import.meta.env.BASE_URL}assets/scenario2/guesthouse-booking-placeholder.webp`;
 
 const NODES = [
   { id: 'join-sys', from: 'system', text: '你已加入 Emily 為好友', wait: 800, next: 'join-emily1' },
@@ -211,9 +215,51 @@ const NODES = [
   {
     id: 'day12-tip',
     tip: '短時間內透過固定關心、親密話語與自拍影片建立感情，可能使人快速產生情感依附。',
-    next: 'day15-divider',
+    next: 'day13-divider',
   },
 
+  // --- Day 13: imagining meeting in person ---------------------------------
+  { id: 'day13-divider', divider: 'Day 13', next: 'day13-e1' },
+  { id: 'day13-e1', from: 'emily', text: '我剛剛突然想到一件事。', next: 'day13-e1-choice' },
+  {
+    id: 'day13-e1-choice',
+    choice: true,
+    options: [
+      { label: '想到什麼？', reply: '我們都聊這麼久了，結果一直沒有真的見到面。', next: 'day13-where-ask' },
+      { label: '又想到我了？', reply: '對啊。\n而且是在想，我們到底什麼時候才不用隔著手機聊天。', next: 'day13-where-ask' },
+      { label: '聽起來好像很神祕', reply: '我在想，如果我們真的見面，第一天要去哪裡。', next: 'day13-where-ask' },
+    ],
+  },
+  { id: 'day13-where-ask', from: 'emily', text: '你比較想去宜蘭還是花蓮？', next: 'day13-where-choice' },
+  {
+    id: 'day13-where-choice',
+    choice: true,
+    options: [
+      { label: '宜蘭，近一點', reply: '那可以找一間有落地窗的民宿。\n晚上不用趕行程，就待在房間裡聊天。', next: 'day13-cost-ask' },
+      { label: '花蓮，感覺比較像旅行', reply: '我也想去花蓮。\n白天看海，晚上找一間安靜的民宿，不要有人打擾我們。', next: 'day13-cost-ask' },
+      { label: '去哪裡都可以，重點是跟誰', reply: '你這句很危險耶。\n這樣我會真的開始期待。', next: 'day13-cost-ask' },
+    ],
+  },
+  {
+    id: 'day13-cost-ask',
+    from: 'emily',
+    text: '可是認真講，出去玩也是一筆錢。\n我不想第一次跟你出去，還要一直算這個能不能吃、那個能不能住。',
+    next: 'day13-cost-choice',
+  },
+  {
+    id: 'day13-cost-choice',
+    choice: true,
+    options: [
+      { label: '我可以出啊', reply: '我知道你會這樣說。\n可是我不想什麼都讓你出，我也想替我們準備一點。', next: 'day13-together-ask' },
+      { label: '不用住太貴', reply: '可是第一次出去，我還是想找一間漂亮一點的。\n至少要讓我期待一下吧😂', next: 'day13-together-ask' },
+      { label: '我們可以一起存', reply: '我喜歡「我們一起」這四個字。', next: 'day13-together-ask' },
+    ],
+  },
+  { id: 'day13-together-ask', from: 'emily', text: '如果你也多存一點，我也多存一點，我們是不是很快就可以去了？', next: 'day13-user' },
+  { id: 'day13-user', from: 'user', text: '應該可以吧。', next: 'day13-final' },
+  { id: 'day13-final', from: 'emily', text: '那以後就不可以每次都只說「改天」。', next: 'day15-divider' },
+
+  // --- Day 15: natural investment introduction (rebranded, no real coin names) ---
   { id: 'day15-divider', divider: 'Day 15', next: 'day15-ask' },
   { id: 'day15-ask', from: 'emily', text: '今天工作真的好累喔……', next: 'day15-choice1' },
   {
@@ -225,78 +271,300 @@ const NODES = [
       { label: '要不要先休息一下？', reply: '等等洗完澡就休息。\n只是最近事情很多，真的有點煩。', next: 'day15-converge1' },
     ],
   },
-  { id: 'day15-converge1', from: 'emily', text: '還好我最近有多一點額外收入，不然壓力應該更大。', next: 'day15-choice2' },
+  { id: 'day15-converge1', from: 'emily', text: '還好我最近有多一點額外收入，不然壓力應該更大。', next: 'day15-platform-intro' },
+  { id: 'day15-platform-intro', from: 'emily', text: '我最近其實就是因為這樣，才會比較認真弄那個平台。', next: 'day15-platform-choice' },
   {
-    id: 'day15-choice2',
+    id: 'day15-platform-choice',
     choice: true,
     options: [
-      { label: '妳有在做副業嗎？', reply: '不算副業啦，是朋友之前帶我接觸一點虛擬貨幣。', next: 'day15-converge2' },
-      { label: '什麼額外收入？', reply: '我最近有跟著朋友看一點虛擬貨幣，偶爾會有一些收益。', next: 'day15-converge2' },
-      { label: '難怪妳看起來沒有很擔心', reply: '還是會擔心啊，只是最近剛好多一點收入，心裡比較沒那麼慌。', next: 'day15-converge2' },
+      { label: '妳之前說的額外收入？', reply: '對啊，就是我之前跟你說的那個。', next: 'day15-save1' },
+      { label: '就是那個投資嗎？', reply: '嗯，朋友帶我用的智能策略。', next: 'day15-save1' },
+      { label: '所以妳真的有賺到？', reply: '有啊，雖然不是一次很多，可是累積起來比只靠薪水快。', next: 'day15-save1' },
     ],
   },
-  { id: 'day15-converge2', from: 'emily', text: '我主要是跟 SOL，你有聽過嗎？', next: 'sol-choice' },
-
-  {
-    id: 'sol-choice',
-    choice: true,
-    options: [
-      { label: '有聽過，但不太懂', reply: '我一開始也完全不懂，現在其實也只是跟著看。', next: 'sol-converge' },
-      { label: '完全沒聽過', reply: '就是一種虛擬貨幣，跟比特幣不太一樣。\n我也是別人跟我說才知道。', next: 'sol-converge' },
-      { label: '虛擬貨幣不是風險很高嗎？', reply: '風險確實不低，所以我一開始也只敢放一點點。', next: 'sol-converge' },
-    ],
-  },
-  { id: 'sol-converge', from: 'emily', text: '是朋友帶我進一個分析群，他們會整理進出場的時間。', next: 'team-choice' },
-  {
-    id: 'team-choice',
-    choice: true,
-    options: [
-      { label: '真的有那麼容易？', reply: '也不能說很容易啦，只是我目前跟的幾次剛好都有小賺。', next: 'shot-lead1' },
-      { label: '妳賺很多嗎？', reply: '沒有很多，幾百美金而已，我也不敢一次放太多。', next: 'shot-lead1' },
-      { label: '聽起來怪怪的', reply: '我一開始也覺得怪，所以第一次只放很少，後來有提領出來才比較放心。', next: 'shot-lead1' },
-    ],
-  },
-
-  { id: 'shot-lead1', from: 'emily', text: '我找一下。', wait: 1400, next: 'shot-lead2' },
-  { id: 'shot-lead2', from: 'emily', text: '我之前有截一張。', next: 'shot-image' },
-  {
-    id: 'shot-image',
-    image: {
-      brand: 'NOVA QUANT',
-      rows: [
-        ['本日收益', '+368 USDT'],
-        ['總資產', '4,862 USDT'],
-        ['SOL 智能策略', '+8.36%'],
-      ],
-    },
-    next: 'shot-after1',
-  },
-  { id: 'shot-after1', from: 'emily', text: '我就是看到這樣才慢慢相信。', next: 'shot-after2' },
-  { id: 'shot-after2', from: 'emily', text: '不過你不用急著碰啦，我只是剛好聊到才跟你說。', next: 'link-lead1' },
-
-  { id: 'link-lead1', from: 'emily', text: '你有興趣的話，可以先看一下介面。', next: 'link-lead2' },
-  { id: 'link-lead2', from: 'emily', text: '我把網址貼給你。', next: 'link-card-node' },
+  { id: 'day15-save1', from: 'emily', text: '我本來只是想自己慢慢存。', next: 'day15-save2' },
+  { id: 'day15-save2', from: 'emily', text: '可是剛剛想到，如果我們一起，好像可以更快實現。', next: 'day15-save3' },
+  { id: 'day15-save3', from: 'emily', text: '你要不要先看看？', next: 'link-card-node' },
   {
     id: 'link-card-node',
-    link: { brand: 'NOVA QUANT', subtitle: 'AI Digital Asset Strategy', url: 'nova-quant.digital' },
-    next: 'link-return-ask',
+    link: {
+      brand: '幣勝客 BITION',
+      title: 'AI 智能數位資產交易',
+      subtitle: '全球多市場智能套利策略，24 小時自動運行',
+      cta: '開啟平台',
+    },
+    next: 's8-ask',
   },
-  { id: 'link-return-ask', from: 'emily', text: '有看到嗎？', next: 'link-return-choice' },
+
+  // --- Section 八：platform "查看策略" click switches back to LINE ---------
+  { id: 's8-ask', from: 'emily', text: '有看到嗎？', next: 's8-choice' },
   {
-    id: 'link-return-choice',
+    id: 's8-choice',
     choice: true,
     options: [
-      { label: '這是哪家公司？', reply: '我朋友說是他們分析團隊合作的平台，我自己也是用這個。', next: 'link-tip' },
-      { label: '這樣安全嗎？', reply: '我朋友已經用了滿久，我自己也有提領過。\n你先看看就好，不用馬上放錢。', next: 'link-tip' },
-      { label: '我先看看介面', reply: '好啊，你不懂再截圖問我。', next: 'link-tip' },
+      { label: '這是哪家公司？', reply: '我朋友說是他們分析團隊合作的平台，我自己也是用這個。', next: 's8-end' },
+      { label: '這樣安全嗎？', reply: '我朋友已經用了滿久，我自己也有提領過。\n你先看看就好，不用馬上放錢。', next: 's8-end' },
+      { label: '我先看看介面', reply: '好啊，你不懂再截圖問我。', next: 's8-end' },
     ],
   },
   {
-    id: 'link-tip',
-    tip: '陌生人傳送的投資網址，可能使用近似品牌名稱、短期網域或仿冒頁面。不要因為對方提供收益截圖，就認定平台安全。',
+    id: 's8-end',
+    custom: {
+      kind: 'goto-platform',
+      route: '/scenario02-romance/trading',
+      patch: { page: 'strategy' },
+      resumeId: 's10-ask',
+    },
+    wait: 5000,
+    next: 's10-ask',
+  },
+
+  // --- Section 十：before first deposit, switch to LINE again --------------
+  { id: 's10-ask', from: 'emily', text: '你真的要跟我一起試喔？', next: 's10-choice' },
+  {
+    id: 's10-choice',
+    choice: true,
+    options: [
+      { label: '先放一點看看', reply: '嗯，不用一開始就放很多。\n我只是覺得，這可以當作我們的第一筆旅行基金。', next: 's10-converge1' },
+      {
+        label: '我還是有點怕',
+        reply: '我懂，第一次一定會怕。\n你不用勉強自己放很多，就先用你能接受的金額試試看。\n等真的有收益，我們就把它留下來當見面的基金。',
+        next: 's10-converge1',
+      },
+      {
+        label: '因為是妳推薦的',
+        reply: '你這樣講，我壓力很大耶。\n可是也有一點開心。\n好像你真的願意跟我一起規劃以後。',
+        next: 's10-converge1',
+      },
+    ],
+  },
+  { id: 's10-converge1', from: 'emily', text: '那我們說好。', next: 's10-converge2' },
+  { id: 's10-converge2', from: 'emily', text: '這筆不是你一個人的投資。', next: 's10-converge3' },
+  { id: 's10-converge3', from: 'emily', text: '是我們第一次一起為見面準備的錢。', next: 's10-end' },
+  {
+    id: 's10-end',
+    custom: {
+      kind: 'goto-platform',
+      route: '/scenario02-romance/deposit-warning',
+      patch: { page: 'deposit-warning' },
+      resumeId: 's14-ask',
+    },
+    wait: 5000,
+    next: 's14-ask',
+  },
+
+  // --- Section 十四：after deposit, Emily starts calling player 老公 -------
+  { id: 's14-ask', from: 'emily', text: '你真的弄好了？', next: 's14-choice' },
+  {
+    id: 's14-choice',
+    choice: true,
+    options: [
+      { label: '好了', reply: '你怎麼這麼乖啦。', next: 's14-converge' },
+      { label: '對啊，現在只能相信妳了', reply: '不可以只相信我。\n你還要相信我們真的會見面。', next: 's14-converge' },
+      { label: '我可是為了我們的旅行', reply: '我知道。\n所以我也會認真存，不會讓你一個人努力。', next: 's14-converge' },
+    ],
+  },
+  { id: 's14-converge', from: 'emily', text: '那我們現在是不是算一起做了一件很重要的事？', next: 's14-user1' },
+  { id: 's14-user1', from: 'user', text: '應該算吧。', next: 's14-rename-ask' },
+  { id: 's14-rename-ask', from: 'emily', text: '那我是不是可以換一個稱呼了？', next: 's14-rename-choice' },
+  {
+    id: 's14-rename-choice',
+    choice: true,
+    options: [
+      { label: '什麼稱呼？', reply: '老公。', next: 's14-huogong' },
+      { label: '妳想叫什麼？', reply: '老公啊。\n不然還要叫你什麼？', next: 's14-huogong' },
+      { label: '不會是我想的那個吧', reply: '那你說說看，你想的是哪一個😂', next: 's14-huogong' },
+    ],
+  },
+  { id: 's14-huogong', from: 'emily', text: '老公～', wait: 600, next: 's14-shy' },
+  { id: 's14-shy', from: 'emily', text: '這樣叫好像真的有一點害羞。', next: 's14-end' },
+  {
+    id: 's14-end',
+    custom: {
+      kind: 'goto-platform',
+      route: '/scenario02-romance/platform-home',
+      patch: { page: 'home', platformStep: 'stage1', balance: 10860, profit: 860 },
+      resumeId: 's15-ask',
+    },
+    wait: 5000,
+    next: 's15-ask',
+  },
+
+  // --- Section 十五：staged profit + Section 十六：guesthouse image A ------
+  { id: 's15-ask', from: 'emily', text: '老公，你有看到今天的收益嗎？', next: 's15-choice' },
+  {
+    id: 's15-choice',
+    choice: true,
+    options: [
+      { label: '好像真的有賺', reply: '對啊。\n我看到的時候也會一直忍不住算，我們還差多少旅費。', next: 's15-converge' },
+      { label: '這樣真的可以提領嗎？', reply: '可以啊，我之前就有提領過。\n不然我哪敢叫老公跟我一起。', next: 's15-converge' },
+      { label: '那我們是不是快可以去玩了？', reply: '你比我還急是不是😂\n可是我也真的開始在看民宿了。', next: 's15-converge' },
+    ],
+  },
+  { id: 's15-converge', from: 'emily', text: '我昨天有偷偷存一間。', next: 's16-image' },
+  {
+    id: 's16-image',
+    image: {
+      src: GUESTHOUSE_ROOM_IMG,
+      alt: '宜蘭民宿雙人房圖片預留位置',
+      label: '宜蘭民宿雙人房圖片預留位置',
+    },
+    next: 's16-ask',
+  },
+  { id: 's16-ask', from: 'emily', text: '你覺得這間怎麼樣？', next: 's16-choice' },
+  {
+    id: 's16-choice',
+    choice: true,
+    options: [
+      { label: '看起來很適合兩個人', reply: '本來就是找給兩個人的啊。', next: 's16-converge1' },
+      { label: '妳真的已經看到這麼後面了？', reply: '不然咧？\n我連晚上要帶什麼都快想好了。', next: 's16-converge1' },
+      { label: '房間只有一張床欸', reply: '你現在才發現喔？\n還是你本來想叫我另外睡一間😂', next: 's16-converge1' },
+    ],
+  },
+  { id: 's16-converge1', from: 'emily', text: '到時候我們不要排太多行程。', next: 's16-converge2' },
+  { id: 's16-converge2', from: 'emily', text: '白天出去走走，晚上就回來待在房間裡。', next: 's16-converge3' },
+  { id: 's16-converge3', from: 'emily', text: '手機都關靜音，只陪對方。', next: 's16-end' },
+  {
+    id: 's16-end',
+    custom: {
+      kind: 'goto-platform',
+      route: '/scenario02-romance/platform-home',
+      patch: { page: 'home', platformStep: 'stage3', balance: 38640, profit: 8640 },
+      resumeId: 's17-ask',
+    },
+    wait: 5000,
+    next: 's17-ask',
+  },
+
+  // --- Section 十七：withdrawal storyline ----------------------------------
+  { id: 's17-ask', from: 'emily', text: '老公，我覺得現在差不多可以先提一部分出來。', next: 's17-ask2' },
+  { id: 's17-ask2', from: 'emily', text: '剛好可以拿來付民宿跟吃飯。', next: 's17-end' },
+  {
+    id: 's17-end',
+    custom: {
+      kind: 'goto-platform',
+      route: '/scenario02-romance/withdrawal',
+      patch: { page: 'withdrawal', withdrawalStep: 'requested' },
+      resumeId: 's19-ask',
+    },
+    wait: 5000,
+    next: 's19-ask',
+  },
+
+  // --- Section 十九：after withdrawal failure -------------------------------
+  { id: 's19-ask', from: 'emily', text: '老公，成功了嗎？', next: 's19-choice' },
+  {
+    id: 's19-choice',
+    choice: true,
+    options: [
+      {
+        label: '沒有，它說還要繳安全驗證金',
+        reply: '蛤～怎麼會這樣🥺\n那怎麼辦……\n可是我民宿都已經訂好了耶。',
+        next: 's19-converge',
+      },
+      {
+        label: '它又要我再付三萬',
+        reply: '三萬喔……\n可是現在停下來，原本放進去的錢跟收益不是都拿不出來嗎？\n而且我訂房的錢也已經付了。',
+        next: 's19-converge',
+      },
+      {
+        label: '我覺得這個平台真的有問題',
+        reply: '可是我之前也有遇過驗證。\n我那次完成之後就真的有提領出來。\n會不會只是你第一次提領，所以系統要多確認一次？',
+        next: 's19-converge',
+      },
+    ],
+  },
+  { id: 's19-converge', from: 'emily', text: '我本來還想等你提領成功，再給你一個驚喜的。', next: 's20-image' },
+
+  // --- Section 二十：guesthouse booking image B -----------------------------
+  {
+    id: 's20-image',
+    image: {
+      src: GUESTHOUSE_BOOKING_IMG,
+      alt: 'Emily 宜蘭民宿訂房確認截圖預留位置',
+      label: 'Emily 宜蘭民宿訂房確認截圖預留位置',
+    },
+    next: 's20-ask1',
+  },
+  { id: 's20-ask1', from: 'emily', text: '你看，我真的訂了。', next: 's20-ask2' },
+  { id: 's20-ask2', from: 'emily', text: '我還特別選了你之前說想去的地方。', next: 's20-ask3' },
+  { id: 's20-ask3', from: 'emily', text: '我一直以為這個週末，我們終於不用只在手機裡面聊天了。', next: 's20-choice' },
+  {
+    id: 's20-choice',
+    choice: true,
+    options: [
+      { label: '妳真的都訂好了？', reply: '對啊。\n我連衣服都想好了。\n結果你現在才問我是不是真的。', next: 's21-lead1' },
+      {
+        label: '可是它還要我繼續付錢',
+        reply: '我知道，我也不是叫你亂付。\n可是它不是寫完成驗證，就可以連原本的錢一起提領嗎？\n等拿出來，我們這趟也不用一直擔心花多少。',
+        next: 's21-lead1',
+      },
+      { label: '我現在真的不敢再放了', reply: '好……我不逼你。', next: 's20-sad1' },
+    ],
+  },
+  { id: 's20-sad1', from: 'emily', text: '我只是有點難過。', wait: 1000, next: 's20-sad2' },
+  { id: 's20-sad2', from: 'emily', text: '因為我真的以為，我們已經快要見面了。', next: 's21-lead1' },
+
+  // --- Section 二十一：amplify future imagination ---------------------------
+  { id: 's21-lead1', from: 'emily', text: '而且我想的又不只是這次宜蘭。', next: 's21-lead2' },
+  { id: 's21-lead2', from: 'emily', text: '如果我們兩個都多存一點，以後還可以一起去日本。', next: 's21-lead3' },
+  { id: 's21-lead3', from: 'emily', text: '去京都住有溫泉的旅館。', next: 's21-lead4' },
+  { id: 's21-lead4', from: 'emily', text: '白天出去走走，晚上就一起泡湯、聊天。', next: 's21-lead5' },
+  { id: 's21-lead5', from: 'emily', text: '這些我都不是隨便講講而已。', next: 's21-choice' },
+  {
+    id: 's21-choice',
+    choice: true,
+    options: [
+      {
+        label: '妳真的有把我放進未來嗎？',
+        reply: '不然我為什麼會一直跟你說「我們」？\n我早就不是只把你當聊天的人了。',
+        next: 's22-lead1',
+      },
+      {
+        label: '可是我怕再也拿不回來',
+        reply: '我懂你怕。\n可是現在只差最後一個驗證。\n如果就這樣停下來，我們前面一起做的，不是全部都卡在那裡了嗎？',
+        next: 's22-lead1',
+      },
+      {
+        label: '妳真的會跟我去？',
+        reply: '老公，你怎麼到現在還在問這個。\n我連房間都訂好了。\n我只是怕最後沒有出現的人是你。',
+        next: 's22-lead1',
+      },
+    ],
+  },
+
+  // --- Section 二十二：final temptation -------------------------------------
+  { id: 's22-lead1', from: 'emily', text: '我不是要逼你繼續投資。', next: 's22-lead2' },
+  { id: 's22-lead2', from: 'emily', text: '我只是覺得，我們好不容易都走到這裡了。', next: 's22-lead3' },
+  { id: 's22-lead3', from: 'emily', text: '你先完成這次驗證。', next: 's22-lead4' },
+  { id: 's22-lead4', from: 'emily', text: '等錢拿出來，我們就去宜蘭。', next: 's22-lead5' },
+  { id: 's22-lead5', from: 'emily', text: '到時候手機關靜音。', next: 's22-lead6' },
+  { id: 's22-lead6', from: 'emily', text: '這兩天你只陪我，好不好？', next: 's22-choice' },
+  {
+    id: 's22-choice',
+    choice: true,
+    options: [
+      { label: '好，我再試最後一次', reply: '老公最好了。\n我真的會在那裡等你。', next: 's22-end' },
+      { label: '我先回平台看看', reply: '好，你先看。\n不懂就回來問我，我陪你。', next: 's22-end' },
+      {
+        label: '我還是覺得不對勁',
+        reply: '我知道你擔心。\n可是如果你什麼都不做，我們的錢就真的只能一直放在裡面。',
+        next: 's22-end',
+      },
+    ],
+  },
+  {
+    id: 's22-end',
+    custom: {
+      kind: 'goto-platform',
+      route: '/scenario02-romance/topup-warning',
+      patch: { page: 'topup-warning', withdrawalStep: 'verification-required' },
+      resumeId: 'end-chat',
+    },
+    wait: 5000,
     next: 'end-chat',
   },
-  { id: 'end-chat', end: true, reason: 'reached-link' },
+  { id: 'end-chat', end: true, reason: 'reached-topup-warning' },
 ];
 
 function VideoThumb({ item, onOpen }) {
@@ -308,33 +576,36 @@ function VideoThumb({ item, onOpen }) {
   );
 }
 
-// The profit-screenshot "photo" Emily sends - a compact preview card (same
-// brand/rows data the old inline card showed) with a tap-to-enlarge
-// affordance, rather than the numbers just sitting fully expanded in the
-// chat flow already.
-function ImageThumb({ item, onOpen }) {
+// Emily's guesthouse photos - real assets aren't supplied yet (see final
+// report), so this always renders the on-screen placeholder label; the
+// <img> tag is still wired to the real future path so dropping a real photo
+// in at that path starts working immediately with no code change, via the
+// onError fallback below.
+function PhotoThumb({ item, onOpen }) {
+  const [failed, setFailed] = useState(false);
   return (
-    <button type="button" className="line-image-thumb" onClick={onOpen} aria-label="查看圖片">
-      <div className="shot-brand">{item.brand}</div>
-      {item.rows.slice(0, 2).map(([label, value], r) => (
-        <div key={r} className="shot-row"><span>{label}</span><strong>{value}</strong></div>
-      ))}
+    <button type="button" className="line-image-thumb line-photo-thumb" onClick={onOpen} aria-label="查看圖片">
+      {!failed && (
+        <img src={item.src} alt={item.alt} className="line-photo-img" onError={() => setFailed(true)} />
+      )}
+      {failed && <div className="line-photo-placeholder">{item.label}</div>}
       <span className="line-image-thumb-zoom"><ZoomIn size={16} /></span>
     </button>
   );
 }
 
-function ImageLightbox({ item, onClose }) {
+function PhotoLightbox({ item, onClose }) {
+  const [failed, setFailed] = useState(false);
   return (
     <div className="line-image-lightbox" onClick={onClose}>
-      <div className="line-image-lightbox-card" onClick={(e) => e.stopPropagation()}>
+      <div className="line-image-lightbox-card line-photo-lightbox-card" onClick={(e) => e.stopPropagation()}>
         <button type="button" className="line-image-lightbox-close" onClick={onClose} aria-label="關閉">
           <X size={20} />
         </button>
-        <div className="shot-brand">{item.brand}</div>
-        {item.rows.map(([label, value], r) => (
-          <div key={r} className="shot-row"><span>{label}</span><strong>{value}</strong></div>
-        ))}
+        {!failed && (
+          <img src={item.src} alt={item.alt} className="line-photo-img-large" onError={() => setFailed(true)} />
+        )}
+        {failed && <div className="line-photo-placeholder line-photo-placeholder-large">{item.label}</div>}
       </div>
     </div>
   );
@@ -348,10 +619,15 @@ function ImageLightbox({ item, onClose }) {
 function LinkCard({ item, active, onOpen }) {
   const content = (
     <>
+      <div className="link-card-badge">幣</div>
       <div className="link-brand">{item.brand}</div>
-      <div>{item.subtitle}</div>
-      <div className="link-url">{item.url}</div>
-      {active && <span className="link-card-icon"><ExternalLink size={16} /></span>}
+      <div className="link-title">{item.title}</div>
+      <div className="link-url">{item.subtitle}</div>
+      {active && (
+        <span className="link-card-cta">
+          {item.cta} <ExternalLink size={14} />
+        </span>
+      )}
     </>
   );
   if (!active) {
@@ -588,6 +864,33 @@ export function PrivateChat() {
     }
   }, [timeline, isTyping, pendingChoice, pendingTip]);
 
+  // "goto-platform" is an invisible control node (see NODES): whenever the
+  // dialogue tree reaches one, save the LINE checkpoint to resume from next
+  // time (its resumeId), hand the platform whatever state patch this beat
+  // implies, and hand control over to the investment platform - a full
+  // screen switch, not an overlay, same as the original link-card handoff.
+  //
+  // A resumed checkpoint's restored timeline can itself already end in a
+  // goto-platform item (that's exactly what was pushed right before this
+  // checkpoint was saved on the previous visit) - only a NEWLY pushed one,
+  // past whatever length we resumed with, should ever trigger another
+  // switch. Without this guard, resuming would immediately re-fire the old
+  // switch and bounce straight back to the platform before the resumed
+  // dialogue ever gets a chance to render.
+  const initialLengthRef = useRef(checkpoint ? checkpoint.timeline.length : 0);
+  const switchedAwayRef = useRef(false);
+  useEffect(() => {
+    if (switchedAwayRef.current) return;
+    if (timeline.length <= initialLengthRef.current) return;
+    const last = timeline[timeline.length - 1];
+    if (!last || last.kind !== 'goto-platform') return;
+    switchedAwayRef.current = true;
+    savePrivateChatCheckpoint(timeline, last.resumeId, watchedVideoIds);
+    savePlatformState(last.patch || {});
+    const t = setTimeout(() => navigate(last.route), 700);
+    return () => clearTimeout(t);
+  }, [timeline, watchedVideoIds, navigate]);
+
   // Not just the src string - the overlay needs the id itself (VIDEO_SRC key)
   // for its `key` prop, so switching between v1/v2/v3 always mounts a fresh
   // <video> instead of a browser potentially carrying over the previous
@@ -668,9 +971,12 @@ export function PrivateChat() {
           if (item.kind === 'image') {
             return (
               <IncomingMessage key={i} time={time}>
-                <ImageThumb item={item} onOpen={() => setLightboxItem(item)} />
+                <PhotoThumb item={item} onOpen={() => setLightboxItem(item)} />
               </IncomingMessage>
             );
+          }
+          if (item.kind === 'goto-platform') {
+            return null;
           }
           if (item.kind === 'link') {
             return (
@@ -702,7 +1008,7 @@ export function PrivateChat() {
       {activeSrc && (
         <VideoOverlay key={activeVideoId} videoId={activeVideoId} src={activeSrc} onFinished={handleVideoFinished} />
       )}
-      {lightboxItem && <ImageLightbox item={lightboxItem} onClose={closeImage} />}
+      {lightboxItem && <PhotoLightbox item={lightboxItem} onClose={closeImage} />}
     </div>
   );
 }

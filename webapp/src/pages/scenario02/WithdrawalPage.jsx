@@ -1,76 +1,63 @@
 import { useEffect, useState } from 'react';
-import { TopBar } from '../../shell/TopBar';
-import { Platform, Stat } from '../../components/ui/Platform';
-import { Button } from '../../components/ui/Button';
-import { useSaveScenario02Progress } from '../../lib/scenario02Store';
+import { useNavigate } from 'react-router-dom';
+import { useStageClassName } from '../../shell/StageClassContext';
+import { useSaveScenario02Progress, usePlatformState, switchToLine } from '../../lib/scenario02Store';
 
-const VERIFY_STEPS = ['帳戶驗證完成', '交易紀錄驗證完成', '資產來源驗證中'];
-
+// Section 十七/十八: withdrawal request followed by the scripted failure
+// (a "resource security verification" demand) - failure auto-returns to
+// LINE, no button lets the player skip straight past it.
 export function WithdrawalPage() {
   useSaveScenario02Progress('/scenario02-romance/withdrawal');
-  const [method, setMethod] = useState('twd');
+  useStageClassName('bition-stage');
+  const navigate = useNavigate();
+  const [platform] = usePlatformState();
   const [phase, setPhase] = useState('form');
-  const [verifyIndex, setVerifyIndex] = useState(-1);
+  const total = platform.balance || 38640;
+
+  function requestWithdrawal() {
+    setPhase('reviewing');
+    setTimeout(() => setPhase('failed'), 1500);
+  }
 
   useEffect(() => {
-    if (phase !== 'verifying') return undefined;
-    if (verifyIndex >= VERIFY_STEPS.length - 1) {
-      const t = setTimeout(() => setPhase('paused'), 900);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => setVerifyIndex((i) => i + 1), 850);
+    if (phase !== 'failed') return undefined;
+    const t = setTimeout(() => {
+      switchToLine(navigate, { page: 'withdrawal-failed', withdrawalStep: 'failed' });
+    }, 1000);
     return () => clearTimeout(t);
-  }, [phase, verifyIndex]);
+  }, [phase, navigate]);
 
   return (
-    <>
-      <TopBar brand="NOVA QUANT" />
-      <Platform>
-        <h2>申請出金</h2>
-        <Stat label="帳戶總資產" value="4,782.60 USDT" />
-        <Stat label="折合約" value="NT$150,862" />
+    <div className="bition-app">
+      <header className="bition-sub-header">
+        <div className="bition-home-logo small">幣勝客 <span>BITION</span></div>
+      </header>
+      <div className="bition-home-scroll">
+        <div className="bition-card">
+          <h2 className="bition-section-title">申請提領</h2>
+          <div className="bition-stat-row"><span>總資產估值</span><strong>{total.toFixed(2)} CIBDT</strong></div>
+          <div className="bition-stat-row"><span>累積收益</span><strong>+{(platform.profit || 8640).toFixed(2)} CIBDT</strong></div>
 
-        {phase === 'form' && (
-          <>
-            <div className="btns" style={{ gridTemplateColumns: '1fr 1fr' }}>
-              <button className={`btn ${method === 'twd' ? '' : 'secondary'}`} type="button" onClick={() => setMethod('twd')}>
-                台幣銀行帳戶
-              </button>
-              <button className={`btn ${method === 'usdt' ? '' : 'secondary'}`} type="button" onClick={() => setMethod('usdt')}>
-                USDT 錢包
-              </button>
+          {phase === 'form' && (
+            <>
+              <div className="bition-stat-row"><span>可提領資產</span><strong>{total.toFixed(2)} CIBDT</strong></div>
+              <div className="bition-stat-row"><span>預計到帳</span><strong>NT${Math.round(total).toLocaleString()}</strong></div>
+              <button type="button" className="bition-btn-primary" onClick={requestWithdrawal}>確認提領</button>
+            </>
+          )}
+
+          {phase === 'reviewing' && <p className="bition-processing">提領申請審核中……</p>}
+
+          {phase === 'failed' && (
+            <div className="bition-withdraw-failed">
+              <h3>提領暫時無法完成</h3>
+              <p>您的帳戶尚未完成資金安全驗證。完成驗證後，即可恢復完整提領權限。</p>
+              <div className="bition-stat-row"><span>資金安全驗證金</span><strong>NT$30,000</strong></div>
+              <button type="button" className="bition-btn-primary" disabled>完成安全驗證</button>
             </div>
-            {method === 'twd' ? (
-              <Stat label="收款帳戶" value="銀行帳戶 •••• 8821" />
-            ) : (
-              <Stat label="收款錢包" value="TRX9••••••••DEMO" />
-            )}
-            <Stat label="提領金額" value="全部提領" />
-            <Button onClick={() => setPhase('verifying')}>申請全部提領</Button>
-          </>
-        )}
-
-        {phase === 'verifying' && (
-          <>
-            <h2 style={{ marginTop: 16 }}>正在進行風險審核……</h2>
-            <ul className="step-status-list">
-              {VERIFY_STEPS.map((step, i) => (
-                <li key={step} className={i <= verifyIndex ? 'done' : ''}>
-                  <span className="dot" /> {step}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-
-        {phase === 'paused' && (
-          <div className="warning" style={{ marginTop: 16 }}>
-            <h2>提領暫停</h2>
-            <p>您的提領申請目前無法完成。</p>
-            <Button variant="danger" to="/scenario02-romance/guarantee">查看原因</Button>
-          </div>
-        )}
-      </Platform>
-    </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

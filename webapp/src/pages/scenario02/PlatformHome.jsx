@@ -1,90 +1,171 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TopBar } from '../../shell/TopBar';
-import { Platform, Stat } from '../../components/ui/Platform';
-import { Button } from '../../components/ui/Button';
-import { useSaveScenario02Progress } from '../../lib/scenario02Store';
+import { Bell, User } from 'lucide-react';
+import { useStageClassName } from '../../shell/StageClassContext';
+import { useSaveScenario02Progress, usePlatformState, switchToLine } from '../../lib/scenario02Store';
+import { useCountUp } from '../../lib/useCountUp';
 
 const TABS = ['首頁', '市場', '策略', '資產', '我的'];
 
-const MARKET = [
-  ['SOL', '$142.80', '+6.4%'],
-  ['BTC', '$61,230', '+1.2%'],
-  ['ETH', '$3,410', '+0.8%'],
-  ['USDT', '$1.00', '0.0%'],
+const POOLS = [
+  { name: '全球趨勢池', change: '+3.82%', nodes: 24 },
+  { name: '跨市場套利池', change: '+2.46%', nodes: 18 },
+  { name: '智能網格池', change: '+4.15%', nodes: 32 },
 ];
+
+// Every step after 'idle' has already been through the first deposit; the
+// two "stageN" steps are the moments Emily proactively messages about
+// profit having grown, per the story script - the player never has to
+// click anything to see the number move, matching the scripted beats in
+// PrivateChat's NODES (s14-end/s16-end).
+const AUTO_ADVANCE_STEPS = new Set(['stage1', 'stage3']);
 
 export function PlatformHome() {
   useSaveScenario02Progress('/scenario02-romance/platform-home');
+  useStageClassName('bition-stage');
   const navigate = useNavigate();
+  const [platform] = usePlatformState();
   const [tab, setTab] = useState('首頁');
+  const firedRef = useRef(null);
+
+  const balance = useCountUp(platform.balance);
+  const profit = useCountUp(platform.profit);
+  const running = platform.depositCompleted;
+
+  // Emily "checking in" on profit: the platform doesn't wait for a click at
+  // these two beats, it just returns to LINE on its own after the player has
+  // had a moment to see the new number - see section 十五/十六 of the story.
+  useEffect(() => {
+    if (!AUTO_ADVANCE_STEPS.has(platform.platformStep)) return undefined;
+    if (firedRef.current === platform.platformStep) return undefined;
+    firedRef.current = platform.platformStep;
+    const t = setTimeout(() => switchToLine(navigate, { page: 'home' }), 2600);
+    return () => clearTimeout(t);
+  }, [platform.platformStep, navigate]);
+
+  function viewStrategy() {
+    switchToLine(navigate, {
+      page: 'home',
+      registrationCompleted: true,
+      accountCreated: true,
+      termsAccepted: true,
+    });
+  }
 
   return (
-    <>
-      <TopBar brand="NOVA QUANT" />
-      <Platform>
+    <div className="bition-app">
+      <header className="bition-home-header">
+        <div className="bition-home-logo">
+          幣勝客
+          <span>BITION</span>
+        </div>
+        <div className="bition-home-icons">
+          <button type="button" aria-label="通知"><Bell size={18} /></button>
+          <button type="button" aria-label="帳戶"><User size={18} /></button>
+        </div>
+      </header>
+
+      <div className="bition-home-scroll">
         {tab === '首頁' && (
           <>
-            <h2>資產總覽</h2>
-            <Stat label="總資產估值" value="0.00 USDT" />
-            <Stat label="今日收益" value="0.00 USDT" />
-            <div className="fake-chart" style={{ marginTop: 16 }}>
-              <div className="chart-top"><span>SOL AI 趨勢策略</span><strong>等待啟用</strong></div>
-              <div className="stat"><span>預估日收益</span><span>2.8% ～ 6.5%</span></div>
-              <div className="stat"><span>風險等級（平台自稱）</span><span>低</span></div>
+            <div className="bition-card bition-asset-card">
+              <div className="bition-asset-label">我的資產</div>
+              <div className="bition-asset-value">{balance.toFixed(2)} <span>CIBDT</span></div>
+              <div className="bition-asset-sub">≈ NT${Math.round(balance).toLocaleString()}</div>
+              <div className="bition-asset-profit">
+                <span>今日收益</span>
+                <strong className={profit > 0 ? 'up' : ''}>{profit.toFixed(2)} CIBDT</strong>
+              </div>
+              <div className="bition-quick-actions">
+                {['入金', '提領', '轉換', '紀錄'].map((label) => (
+                  <div key={label} className="bition-quick-action" aria-disabled="true">
+                    <span>{label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <Button onClick={() => navigate('/scenario02-romance/deposit')}>立即入金</Button>
+
+            <div className="bition-card bition-strategy-card">
+              <div className="bition-strategy-head">
+                <div>
+                  <div className="bition-strategy-name">AI 智能套利策略</div>
+                  <div className="bition-strategy-desc">全球多市場價格差自動追蹤</div>
+                </div>
+                <span className={`bition-status-pill ${running ? 'running' : ''}`}>
+                  {running ? '運行中' : '等待啟用'}
+                </span>
+              </div>
+              <div className="bition-strategy-grid">
+                <div><span>預估日收益</span><strong>2.8%–6.5%</strong></div>
+                <div><span>策略類型</span><strong>穩健型</strong></div>
+                <div><span>結算資產</span><strong>CIBDT</strong></div>
+              </div>
+              {!running && (
+                <button type="button" className="bition-btn-primary" onClick={viewStrategy}>
+                  查看策略
+                </button>
+              )}
+            </div>
+
+            <div className="bition-pools">
+              {POOLS.map((p) => (
+                <div key={p.name} className="bition-card bition-pool-card">
+                  <div className="bition-pool-name">{p.name}</div>
+                  <div className="bition-pool-row"><span>今日收益</span><strong className="up">{p.change}</strong></div>
+                  <div className="bition-pool-row"><span>運行節點</span><strong>{p.nodes}</strong></div>
+                </div>
+              ))}
+            </div>
           </>
         )}
+
         {tab === '市場' && (
-          <>
-            <h2>市場</h2>
-            {MARKET.map(([sym, price, change]) => (
-              <Stat key={sym} label={sym} value={`${price} (${change})`} />
+          <div className="bition-card">
+            <h2 className="bition-section-title">全球多市場套利</h2>
+            <p className="mini">系統即時追蹤多個市場間的價格差，模擬呈現，不對應真實交易所報價。</p>
+            {POOLS.map((p) => (
+              <div key={p.name} className="bition-stat-row">
+                <span>{p.name}</span>
+                <strong className="up">{p.change}</strong>
+              </div>
             ))}
-          </>
+          </div>
         )}
+
         {tab === '策略' && (
-          <>
-            <h2>SOL AI 趨勢策略</h2>
-            <p>透過 AI 模型分析 SOL 短線走勢，自動判斷進出場時機。</p>
-            <Stat label="預估日收益" value="2.8% ～ 6.5%" />
-            <Stat label="風險等級（平台自稱）" value="低" />
-            <Stat label="狀態" value="等待啟用" />
-          </>
+          <div className="bition-card">
+            <h2 className="bition-section-title">AI 智能套利策略</h2>
+            <div className="bition-stat-row"><span>策略市場</span><strong>全球多市場套利</strong></div>
+            <div className="bition-stat-row"><span>預估日收益</span><strong>2.8%–6.5%</strong></div>
+            <div className="bition-stat-row"><span>結算資產</span><strong>CIBDT</strong></div>
+            <div className="bition-stat-row"><span>目前狀態</span><strong>{running ? '運行中' : '等待啟用'}</strong></div>
+          </div>
         )}
+
         {tab === '資產' && (
-          <>
-            <h2>資產</h2>
-            <Stat label="USDT 餘額" value="0.00 USDT" />
-          </>
+          <div className="bition-card">
+            <h2 className="bition-section-title">資產總覽</h2>
+            <div className="bition-stat-row"><span>CIBDT 餘額</span><strong>{balance.toFixed(2)} CIBDT</strong></div>
+            <div className="bition-stat-row"><span>累積收益</span><strong>{profit.toFixed(2)} CIBDT</strong></div>
+          </div>
         )}
+
         {tab === '我的' && (
-          <>
-            <h2>我的</h2>
-            <Stat label="帳號" value="guest_0218" />
-            <Stat label="推薦人" value="EMILY88" />
-            <Stat label="客服" value="線上客服（點擊聯絡）" />
-            <Stat label="服務條款" value="查看條款" />
-          </>
+          <div className="bition-card">
+            <h2 className="bition-section-title">我的</h2>
+            <div className="bition-stat-row"><span>推薦人</span><strong>EMILY88</strong></div>
+            <div className="bition-stat-row"><span>服務條款</span><strong>使用者服務協議</strong></div>
+          </div>
         )}
+      </div>
 
-        <div className="platform-nav">
-          {TABS.map((t) => (
-            <button key={t} type="button" className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
-              {t}
-            </button>
-          ))}
-        </div>
-      </Platform>
-
-      <button
-        type="button"
-        className="btn secondary platform-drawer-toggle"
-        onClick={() => navigate('/scenario02-romance/private-chat')}
-      >
-        返回 LINE
-      </button>
-    </>
+      <nav className="bition-bottom-nav">
+        {TABS.map((t) => (
+          <button key={t} type="button" className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
+            {t}
+          </button>
+        ))}
+      </nav>
+    </div>
   );
 }
