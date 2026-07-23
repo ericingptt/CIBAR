@@ -6,6 +6,7 @@ import { ButtonGroup } from '../components/ui/ButtonGroup';
 import { Button } from '../components/ui/Button';
 import { TRACKER_TARGETS } from '../scanner/trackerConfig';
 import { useTracker } from '../scanner/useTracker';
+import { resetScenario02 } from '../lib/scenario02Store';
 
 const SIMULATE_SCAN_MAP = {
   investment: { route: '/scenario01-investment', label: '假投資詐騙' },
@@ -23,6 +24,9 @@ export function Scanner() {
 
   function simulateScan(scenario) {
     const target = SIMULATE_SCAN_MAP[scenario];
+    // Every entry into scenario02 from here is a new run - only scenario02
+    // keeps any cross-page progress today, so this is a no-op for the others.
+    if (scenario === 'romance') resetScenario02();
     setCameraStatus('線索辨識成功：' + target.label);
     setTimeout(() => navigate(target.route), 1200);
   }

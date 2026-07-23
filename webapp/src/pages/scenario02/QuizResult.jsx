@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { ButtonGroup } from '../../components/ui/ButtonGroup';
 import { Button } from '../../components/ui/Button';
-import { resetScenario02Progress } from '../../lib/scenario02Store';
+import { resetScenario02 } from '../../lib/scenario02Store';
 
 function tier(score) {
   if (score >= 5) return { title: '辨識能力優良', body: '你能辨識情感操控、假平台與出金詐騙的主要特徵。' };
@@ -13,6 +13,7 @@ function tier(score) {
 
 export function QuizResult() {
   const { state } = useLocation();
+  const navigate = useNavigate();
   const [showWrong, setShowWrong] = useState(false);
   const score = state?.score ?? 0;
   const answers = state?.answers ?? [];
@@ -46,9 +47,9 @@ export function QuizResult() {
         <Button
           variant="secondary"
           onClick={() => {
-            resetScenario02Progress();
+            resetScenario02();
+            navigate('/scenario02-romance', { replace: true });
           }}
-          to="/scenario02-romance"
         >
           重新體驗
         </Button>

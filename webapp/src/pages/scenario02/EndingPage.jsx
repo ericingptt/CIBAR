@@ -1,10 +1,18 @@
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { ButtonGroup } from '../../components/ui/ButtonGroup';
 import { Button } from '../../components/ui/Button';
-import { useSaveScenario02Progress } from '../../lib/scenario02Store';
+import { useSaveScenario02Progress, resetScenario02 } from '../../lib/scenario02Store';
 
 export function EndingPage() {
   useSaveScenario02Progress('/scenario02-romance/ending');
+  const navigate = useNavigate();
+
+  function restart() {
+    resetScenario02();
+    navigate('/scenario02-romance', { replace: true });
+  }
+
   return (
     <section className="hero">
       <h1>他讓你心動，不代表他值得你投資。</h1>
@@ -23,7 +31,7 @@ export function EndingPage() {
       <p>遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。</p>
       <ButtonGroup>
         <Button to="/scanner">繼續掃描下一個線索</Button>
-        <Button variant="secondary" to="/scenario02-romance">重新體驗</Button>
+        <Button variant="secondary" onClick={restart}>重新體驗</Button>
       </ButtonGroup>
     </section>
   );
