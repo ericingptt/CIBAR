@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useFitStage } from './useFitStage';
 import { StageClassProvider } from './StageClassContext';
 import { DebugPanel } from '../gesture/DebugPanel';
+import { installMediaAutoplayPrimer } from '../lib/mediaAutoplay';
 
 // Mounted once at the app root (see src/main.jsx), stays mounted across every
 // route change — this is what lets the persistent gesture camera/model survive
@@ -12,6 +13,7 @@ export function AppShell() {
   const stageRef = useRef(null);
   const [extraClass, setExtraClass] = useState('');
   useFitStage(stageRef);
+  useEffect(() => installMediaAutoplayPrimer(), []);
 
   return (
     <>

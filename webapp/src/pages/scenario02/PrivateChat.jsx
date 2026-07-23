@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Search, Phone, Menu, Play, ZoomIn, X, ExternalLink } from 'lucide-react';
 import { useDialogueTree } from '../../lib/dialogueTree';
+import { useAutoMediaPreview } from '../../lib/useAutoMediaPreview';
 import {
   useSaveScenario02Progress,
   savePrivateChatCheckpoint,
@@ -319,28 +320,54 @@ const NODES = [
     next: 's10-ask',
   },
 
-  // --- Section 十：before first deposit, switch to LINE again --------------
-  { id: 's10-ask', from: 'emily', text: '你真的要跟我一起試喔？', next: 's10-choice' },
+  // --- Section 十（重寫）：入金前，Emily 先給出交往承諾 ---------------------
+  { id: 's10-ask', from: 'emily', text: '你真的要跟我一起開始喔？', next: 's10-choice' },
   {
     id: 's10-choice',
     choice: true,
     options: [
-      { label: '先放一點看看', reply: '嗯，不用一開始就放很多。\n我只是覺得，這可以當作我們的第一筆旅行基金。', next: 's10-converge1' },
+      { label: '先放一萬試試看', reply: '一萬就可以了，不用一次放太多。\n就當作我們第一筆一起存的旅行基金。', next: 's10-promise-ask' },
       {
         label: '我還是有點怕',
-        reply: '我懂，第一次一定會怕。\n你不用勉強自己放很多，就先用你能接受的金額試試看。\n等真的有收益，我們就把它留下來當見面的基金。',
-        next: 's10-converge1',
+        reply: '我知道，第一次一定會怕。\n所以才叫你先放一萬就好。\n你願意跟我一起開始，我就已經很開心了。',
+        next: 's10-promise-ask',
       },
       {
-        label: '因為是妳推薦的',
-        reply: '你這樣講，我壓力很大耶。\n可是也有一點開心。\n好像你真的願意跟我一起規劃以後。',
-        next: 's10-converge1',
+        label: '妳真的希望我一起嗎？',
+        reply: '當然啊。\n我不是只想自己賺錢。\n我是想跟你一起存我們以後要用的錢。',
+        next: 's10-promise-ask',
       },
     ],
   },
-  { id: 's10-converge1', from: 'emily', text: '那我們說好。', next: 's10-converge2' },
-  { id: 's10-converge2', from: 'emily', text: '這筆不是你一個人的投資。', next: 's10-converge3' },
-  { id: 's10-converge3', from: 'emily', text: '是我們第一次一起為見面準備的錢。', next: 's10-end' },
+  { id: 's10-promise-ask', from: 'emily', text: '不然我們約定一件事好不好？', next: 's10-promise-user' },
+  { id: 's10-promise-user', from: 'user', text: '什麼事？', next: 's10-promise1' },
+  { id: 's10-promise1', from: 'emily', text: '如果你真的願意把第一筆一萬放進去。', next: 's10-promise2' },
+  { id: 's10-promise2', from: 'emily', text: '那我就正式當你女朋友。', wait: 600, next: 's10-promise3' },
+  { id: 's10-promise3', from: 'emily', text: '不是聊天而已。', next: 's10-promise4' },
+  { id: 's10-promise4', from: 'emily', text: '是真的在一起。', next: 's10-promise-choice' },
+  {
+    id: 's10-promise-choice',
+    choice: true,
+    options: [
+      {
+        label: '妳認真的？',
+        reply: '我很認真啊。\n不然我怎麼會一直跟你講我們要去哪裡、以後要做什麼。',
+        next: 's10-final1',
+      },
+      {
+        label: '所以我入金，妳就答應我？',
+        reply: '不是因為那一萬。\n是因為你願意跟我一起為我們的未來開始。',
+        next: 's10-final1',
+      },
+      {
+        label: '妳不可以騙我',
+        reply: '我連我們第一次要去哪裡都想好了。\n現在反而是我怕你不敢跟我一起。',
+        next: 's10-final1',
+      },
+    ],
+  },
+  { id: 's10-final1', from: 'emily', text: '你先完成。', next: 's10-final2' },
+  { id: 's10-final2', from: 'emily', text: '等你回來，我再告訴你，以後要怎麼叫我。', next: 's10-end' },
   {
     id: 's10-end',
     custom: {
@@ -353,31 +380,30 @@ const NODES = [
     next: 's14-ask',
   },
 
-  // --- Section 十四：after deposit, Emily starts calling player 老公 -------
-  { id: 's14-ask', from: 'emily', text: '你真的弄好了？', next: 's14-choice' },
+  // --- Section 十四（重寫）：入金成功後，Emily 先叫男朋友，再升級成老公 -----
+  { id: 's14-ask', from: 'emily', text: '你真的完成了？', next: 's14-choice' },
   {
     id: 's14-choice',
     choice: true,
     options: [
-      { label: '好了', reply: '你怎麼這麼乖啦。', next: 's14-converge' },
-      { label: '對啊，現在只能相信妳了', reply: '不可以只相信我。\n你還要相信我們真的會見面。', next: 's14-converge' },
-      { label: '我可是為了我們的旅行', reply: '我知道。\n所以我也會認真存，不會讓你一個人努力。', next: 's14-converge' },
+      { label: '完成了', reply: '男朋友。', next: 's14-converge' },
+      { label: '一萬已經進去了', reply: '我看到了。\n男朋友很乖。', next: 's14-converge' },
+      { label: '所以妳剛才說的算數嗎？', reply: '當然算數。\n從現在開始，你就是我男朋友。', next: 's14-converge' },
     ],
   },
-  { id: 's14-converge', from: 'emily', text: '那我們現在是不是算一起做了一件很重要的事？', next: 's14-user1' },
-  { id: 's14-user1', from: 'user', text: '應該算吧。', next: 's14-rename-ask' },
-  { id: 's14-rename-ask', from: 'emily', text: '那我是不是可以換一個稱呼了？', next: 's14-rename-choice' },
+  { id: 's14-converge', from: 'emily', text: '男朋友～', wait: 700, next: 's14-shy1' },
+  { id: 's14-shy1', from: 'emily', text: '可是一直叫男朋友好像有點生疏。', wait: 500, next: 's14-shy2' },
+  { id: 's14-shy2', from: 'emily', text: '老公。', next: 's14-shy3' },
+  { id: 's14-shy3', from: 'emily', text: '這樣比較像我們已經真的在一起了。', next: 's14-rename-choice' },
   {
     id: 's14-rename-choice',
     choice: true,
     options: [
-      { label: '什麼稱呼？', reply: '老公。', next: 's14-huogong' },
-      { label: '妳想叫什麼？', reply: '老公啊。\n不然還要叫你什麼？', next: 's14-huogong' },
-      { label: '不會是我想的那個吧', reply: '那你說說看，你想的是哪一個😂', next: 's14-huogong' },
+      { label: '再叫一次', reply: '老公～\n這樣可以了嗎？', next: 's14-end' },
+      { label: '妳真的很會', reply: '我只對你這樣。', next: 's14-end' },
+      { label: '所以我們現在算在一起了？', reply: '算啊。\n不然你以為我會隨便叫別人老公嗎？', next: 's14-end' },
     ],
   },
-  { id: 's14-huogong', from: 'emily', text: '老公～', wait: 600, next: 's14-shy' },
-  { id: 's14-shy', from: 'emily', text: '這樣叫好像真的有一點害羞。', next: 's14-end' },
   {
     id: 's14-end',
     custom: {
@@ -567,12 +593,16 @@ const NODES = [
   { id: 'end-chat', end: true, reason: 'reached-topup-warning' },
 ];
 
-function VideoThumb({ item, onOpen }) {
+// Purely presentational now - the whole point of the auto-play requirement
+// is that the player never taps anything here. The thumbnail shows for
+// `thumbnailDelay` (driven by useAutoMediaPreview in PrivateChat), then the
+// overlay/lightbox opens on its own.
+function VideoThumb({ item }) {
   return (
-    <button type="button" className="line-video-thumb" onClick={onOpen} aria-label="播放影片">
+    <div className="line-video-thumb" aria-label="Emily 傳來的影片">
       <span className="line-video-thumb-play"><Play size={20} fill="currentColor" /></span>
       <span className="line-video-thumb-duration">{item.duration}</span>
-    </button>
+    </div>
   );
 }
 
@@ -581,16 +611,16 @@ function VideoThumb({ item, onOpen }) {
 // <img> tag is still wired to the real future path so dropping a real photo
 // in at that path starts working immediately with no code change, via the
 // onError fallback below.
-function PhotoThumb({ item, onOpen }) {
+function PhotoThumb({ item }) {
   const [failed, setFailed] = useState(false);
   return (
-    <button type="button" className="line-image-thumb line-photo-thumb" onClick={onOpen} aria-label="查看圖片">
+    <div className="line-image-thumb line-photo-thumb" aria-label="Emily 傳來的照片">
       {!failed && (
         <img src={item.src} alt={item.alt} className="line-photo-img" onError={() => setFailed(true)} />
       )}
       {failed && <div className="line-photo-placeholder">{item.label}</div>}
       <span className="line-image-thumb-zoom"><ZoomIn size={16} /></span>
-    </button>
+    </div>
   );
 }
 
@@ -655,10 +685,8 @@ function TipItem({ item, active, onAck }) {
 }
 
 const VIDEO_STATE = {
-  IDLE: 'idle',
   LOADING: 'loading',
   PLAYING: 'playing',
-  BLOCKED: 'blocked',
   ERROR: 'error',
   ENDED: 'ended',
 };
@@ -667,18 +695,22 @@ const VIDEO_STATE = {
 // load itself is stuck (bad network, unreachable asset, browser quirk) and
 // surfacing an explicit "load failed, skip or retry" screen instead of
 // leaving the player - and the whole educational flow behind it - stuck on
-// a plain black rectangle forever.
+// a plain black rectangle forever. Unrelated to autoplay policy: this only
+// covers a genuinely broken/unreachable file.
 const VIDEO_LOAD_TIMEOUT = 8000;
 
-// Fullscreen video overlay with an explicit state machine instead of a bare
-// `<video autoPlay>`: autoplay-with-sound can be silently blocked by the
-// browser, or the asset can simply still be loading, and either of those
-// looks identical to the player (full black box) unless we track which one
-// it is and show the right recovery UI. No controls, no captions, no "看完了"
-// button - completion is always driven by onEnded/the skip button.
+// Fullscreen video overlay that ALWAYS auto-plays: it starts `muted`
+// (browsers universally allow muted autoplay, no gesture required) and
+// only unmutes once playback has actually started. Toggling `.muted` on an
+// element that's already playing isn't a new play() call, so it isn't
+// re-blocked by autoplay policy the way a fresh unmuted play() would be -
+// if it's ever rejected anyway, the video keeps playing muted rather than
+// stalling or asking the player to tap anything. No "tap to play" fallback
+// exists here anymore; a genuine load failure (bad file, network) still
+// gets an explicit retry/skip screen since that's a different failure mode
+// than autoplay policy.
 function VideoOverlay({ videoId, src, onFinished }) {
   const videoRef = useRef(null);
-  const playAttemptedRef = useRef(false);
   const finishedRef = useRef(false);
   const loadTimeoutRef = useRef(null);
   const [videoState, setVideoState] = useState(VIDEO_STATE.LOADING);
@@ -697,12 +729,11 @@ function VideoOverlay({ videoId, src, onFinished }) {
     }, VIDEO_LOAD_TIMEOUT);
   }
 
-  // Every new video (v1 -> v2 -> v3, or a replay) starts this component
-  // fresh via `key={videoId}` at the call site, but the state reset also
-  // lives here so switching src on an already-mounted instance can't leave
-  // a stale error/ended state behind either.
+  // Every new video (v1 -> v2 -> v3) starts this component fresh via
+  // `key={videoId}` at the call site, but the state reset also lives here
+  // so switching src on an already-mounted instance can't leave a stale
+  // error/ended state behind either.
   useEffect(() => {
-    playAttemptedRef.current = false;
     finishedRef.current = false;
     setVideoErrorMessage('');
     setVideoState(VIDEO_STATE.LOADING);
@@ -721,31 +752,17 @@ function VideoOverlay({ videoId, src, onFinished }) {
     });
   }
 
-  async function tryPlayVideo() {
-    if (playAttemptedRef.current) return;
-    playAttemptedRef.current = true;
+  function handlePlaying() {
+    clearLoadTimeout();
+    setVideoState(VIDEO_STATE.PLAYING);
     const video = videoRef.current;
-    if (!video) return;
-    try {
-      video.currentTime = 0;
-      await video.play();
-      clearLoadTimeout();
-      setVideoState(VIDEO_STATE.PLAYING);
-      console.info('[Scenario02 Video]', { videoId, state: 'playing', src });
-    } catch (error) {
-      console.error('[Scenario02 Video Error]', error);
-      setVideoState(VIDEO_STATE.BLOCKED);
+    if (video) {
+      try {
+        video.muted = false;
+      } catch {
+        // keep playing muted - the auto-advance flow must never depend on sound
+      }
     }
-  }
-
-  function handleManualPlay() {
-    videoRef.current
-      ?.play()
-      .then(() => {
-        clearLoadTimeout();
-        setVideoState(VIDEO_STATE.PLAYING);
-      })
-      .catch((error) => console.error('[Scenario02 Video Error]', error));
   }
 
   function handleVideoError(event) {
@@ -762,7 +779,6 @@ function VideoOverlay({ videoId, src, onFinished }) {
   }
 
   function retryVideo() {
-    playAttemptedRef.current = false;
     setVideoErrorMessage('');
     setVideoState(VIDEO_STATE.LOADING);
     armLoadTimeout();
@@ -777,14 +793,14 @@ function VideoOverlay({ videoId, src, onFinished }) {
         className="line-video-overlay-el"
         src={src}
         autoPlay
+        muted
         playsInline
         preload="auto"
         controls={false}
         disablePictureInPicture
         controlsList="nodownload noplaybackrate nofullscreen"
-        onLoadedData={tryPlayVideo}
-        onCanPlay={tryPlayVideo}
-        onPlaying={() => setVideoState(VIDEO_STATE.PLAYING)}
+        onLoadedData={clearLoadTimeout}
+        onPlaying={handlePlaying}
         onEnded={finishVideo}
         onError={handleVideoError}
         onContextMenu={(e) => e.preventDefault()}
@@ -795,12 +811,6 @@ function VideoOverlay({ videoId, src, onFinished }) {
           <span>影片載入中…</span>
         </div>
       )}
-      {videoState === VIDEO_STATE.BLOCKED && (
-        <button type="button" className="line-video-tap-fallback" onClick={handleManualPlay}>
-          <span className="line-video-play-btn"><Play size={32} fill="currentColor" /></span>
-          <span>點一下播放 Emily 傳來的影片</span>
-        </button>
-      )}
       {videoState === VIDEO_STATE.ERROR && (
         <div className="line-video-error">
           <p title={videoErrorMessage || undefined}>影片載入失敗</p>
@@ -808,6 +818,22 @@ function VideoOverlay({ videoId, src, onFinished }) {
           <button type="button" className="line-video-error-btn secondary" onClick={finishVideo}>略過影片並繼續</button>
         </div>
       )}
+    </div>
+  );
+}
+
+// Shared brand transition used both when first opening the platform (link
+// card tap) and every time a "goto-platform" beat sends the player back -
+// makes the hand-off read as "we are now switching apps", not an instant cut.
+function PlatformOpeningOverlay() {
+  return (
+    <div className="bition-opening-overlay">
+      <div className="bition-opening-logo">
+        幣勝客
+        <span>BITION</span>
+      </div>
+      <div className="bition-opening-spinner" />
+      <p>正在開啟「幣勝客 BITION」……</p>
     </div>
   );
 }
@@ -841,6 +867,7 @@ export function PrivateChat() {
     choose,
     pendingVideo,
     completeVideo,
+    pendingImage,
     completeImage,
     pendingLink,
     pendingTip,
@@ -848,7 +875,6 @@ export function PrivateChat() {
     watchedVideoIds,
   } = useDialogueTree(NODES, 'join-sys', dialogueOptions);
   const [openVideoId, setOpenVideoId] = useState(null);
-  const [replayVideoId, setReplayVideoId] = useState(null);
   const [lightboxItem, setLightboxItem] = useState(null);
   const scrollRef = useRef(null);
 
@@ -864,11 +890,44 @@ export function PrivateChat() {
     }
   }, [timeline, isTyping, pendingChoice, pendingTip]);
 
+  // Auto-play, no tap required anywhere: the thumbnail shows in the chat for
+  // 2s, then the video overlay opens itself. Playback then runs to
+  // completion on its own `ended` event (see VideoOverlay/handleVideoFinished
+  // below) - nothing here assumes a fixed duration.
+  useAutoMediaPreview(pendingVideo?.videoId ?? null, (videoId) => setOpenVideoId(videoId));
+
+  // Same auto-open timing for photos, but sourced from the timeline itself:
+  // dialogueTree's pendingImage only carries `{next}`, not the image payload,
+  // so the actual item (src/alt/label) is whichever 'image' entry is last in
+  // the timeline while a pendingImage gate is open.
+  const pendingImageItem = useMemo(() => {
+    if (!pendingImage) return null;
+    for (let i = timeline.length - 1; i >= 0; i -= 1) {
+      if (timeline[i].kind === 'image') return timeline[i];
+    }
+    return null;
+  }, [pendingImage, timeline]);
+  useAutoMediaPreview(pendingImageItem?.key ?? null, () => setLightboxItem(pendingImageItem));
+
+  // Once the photo lightbox is open, it closes itself after 5s regardless of
+  // whether the player also has a manual "close early" affordance - the
+  // conversation queue only resumes once completeImage() actually fires.
+  useEffect(() => {
+    if (!lightboxItem) return undefined;
+    const t = setTimeout(() => closeImage(), 5000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightboxItem]);
+
   // "goto-platform" is an invisible control node (see NODES): whenever the
   // dialogue tree reaches one, save the LINE checkpoint to resume from next
   // time (its resumeId), hand the platform whatever state patch this beat
-  // implies, and hand control over to the investment platform - a full
-  // screen switch, not an overlay, same as the original link-card handoff.
+  // implies, and hand control over to the investment platform. The switch
+  // itself is deliberately paced rather than instant: a short "即將返回幣勝客"
+  // system tip, then a brand transition overlay, THEN the actual route
+  // change - so the player has a clear moment to register that the
+  // conversation paused and the platform is coming back, instead of the
+  // screen just cutting away mid-beat.
   //
   // A resumed checkpoint's restored timeline can itself already end in a
   // goto-platform item (that's exactly what was pushed right before this
@@ -879,41 +938,39 @@ export function PrivateChat() {
   // dialogue ever gets a chance to render.
   const initialLengthRef = useRef(checkpoint ? checkpoint.timeline.length : 0);
   const switchedAwayRef = useRef(false);
+  const [returningTip, setReturningTip] = useState(false);
+  const [openingPlatform, setOpeningPlatform] = useState(false);
   useEffect(() => {
-    if (switchedAwayRef.current) return;
-    if (timeline.length <= initialLengthRef.current) return;
+    if (switchedAwayRef.current) return undefined;
+    if (timeline.length <= initialLengthRef.current) return undefined;
     const last = timeline[timeline.length - 1];
-    if (!last || last.kind !== 'goto-platform') return;
+    if (!last || last.kind !== 'goto-platform') return undefined;
     switchedAwayRef.current = true;
     savePrivateChatCheckpoint(timeline, last.resumeId, watchedVideoIds);
     savePlatformState(last.patch || {});
-    const t = setTimeout(() => navigate(last.route), 700);
-    return () => clearTimeout(t);
+    const timers = [];
+    setReturningTip(true);
+    timers.push(
+      setTimeout(() => {
+        setReturningTip(false);
+        setOpeningPlatform(true);
+        timers.push(setTimeout(() => navigate(last.route), 1500));
+      }, 1200),
+    );
+    return () => timers.forEach(clearTimeout);
   }, [timeline, watchedVideoIds, navigate]);
 
-  // Not just the src string - the overlay needs the id itself (VIDEO_SRC key)
-  // for its `key` prop, so switching between v1/v2/v3 always mounts a fresh
-  // <video> instead of a browser potentially carrying over the previous
-  // one's error/ended state onto the next src.
-  const activeVideoId = openVideoId ?? replayVideoId ?? null;
-  const activeSrc = useMemo(() => {
-    const id = openVideoId ?? replayVideoId;
-    return id && VIDEO_SRC[id] ? VIDEO_SRC[id] : null;
-  }, [openVideoId, replayVideoId]);
+  const activeSrc = openVideoId && VIDEO_SRC[openVideoId] ? VIDEO_SRC[openVideoId] : null;
 
   function handleVideoFinished() {
-    if (openVideoId) {
-      setOpenVideoId(null);
-      completeVideo();
-      requestAnimationFrame(() => {
-        scrollRef.current?.focus?.();
-        if (scrollRef.current) {
-          scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-        }
-      });
-    } else if (replayVideoId) {
-      setReplayVideoId(null);
-    }
+    setOpenVideoId(null);
+    completeVideo();
+    requestAnimationFrame(() => {
+      scrollRef.current?.focus?.();
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+      }
+    });
   }
 
   function closeImage() {
@@ -921,11 +978,24 @@ export function PrivateChat() {
     completeImage();
   }
 
-  function openLink() {
-    if (pendingLink) {
-      savePrivateChatCheckpoint(timeline, pendingLink.next, watchedVideoIds);
+  // The link card also stays visible for a minimum beat (1.5s) before it can
+  // be opened, and opening it shows the same brand transition overlay used
+  // for every later platform return, instead of navigating instantly.
+  const [linkClickable, setLinkClickable] = useState(false);
+  useEffect(() => {
+    if (!pendingLink) {
+      setLinkClickable(false);
+      return undefined;
     }
-    navigate('/scenario02-romance/platform-register');
+    const t = setTimeout(() => setLinkClickable(true), 1500);
+    return () => clearTimeout(t);
+  }, [pendingLink]);
+
+  function openLink() {
+    if (!pendingLink || !linkClickable) return;
+    savePrivateChatCheckpoint(timeline, pendingLink.next, watchedVideoIds);
+    setOpeningPlatform(true);
+    setTimeout(() => navigate('/scenario02-romance/platform-landing'), 1500);
   }
 
   return (
@@ -952,26 +1022,16 @@ export function PrivateChat() {
             );
           }
           if (item.kind === 'video') {
-            const watched = watchedVideoIds.has(item.videoId);
             return (
               <IncomingMessage key={i} time={time}>
-                <VideoThumb
-                  item={item}
-                  onOpen={() => {
-                    if (watched) {
-                      setReplayVideoId(item.videoId);
-                    } else if (pendingVideo?.videoId === item.videoId) {
-                      setOpenVideoId(item.videoId);
-                    }
-                  }}
-                />
+                <VideoThumb item={item} />
               </IncomingMessage>
             );
           }
           if (item.kind === 'image') {
             return (
               <IncomingMessage key={i} time={time}>
-                <PhotoThumb item={item} onOpen={() => setLightboxItem(item)} />
+                <PhotoThumb item={item} />
               </IncomingMessage>
             );
           }
@@ -981,7 +1041,7 @@ export function PrivateChat() {
           if (item.kind === 'link') {
             return (
               <IncomingMessage key={i} time={time}>
-                <LinkCard item={item} active={Boolean(pendingLink)} onOpen={openLink} />
+                <LinkCard item={item} active={Boolean(pendingLink) && linkClickable} onOpen={openLink} />
               </IncomingMessage>
             );
           }
@@ -1006,9 +1066,11 @@ export function PrivateChat() {
       </footer>
 
       {activeSrc && (
-        <VideoOverlay key={activeVideoId} videoId={activeVideoId} src={activeSrc} onFinished={handleVideoFinished} />
+        <VideoOverlay key={openVideoId} videoId={openVideoId} src={activeSrc} onFinished={handleVideoFinished} />
       )}
       {lightboxItem && <PhotoLightbox item={lightboxItem} onClose={closeImage} />}
+      {returningTip && <div className="line-returning-tip">即將返回幣勝客</div>}
+      {openingPlatform && <PlatformOpeningOverlay />}
     </div>
   );
 }

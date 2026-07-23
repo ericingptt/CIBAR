@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { useStageClassName } from '../../shell/StageClassContext';
 import { useSaveScenario02Progress } from '../../lib/scenario02Store';
 
 const QUESTIONS = [
@@ -39,6 +40,7 @@ const QUESTIONS = [
 
 export function Quiz() {
   useSaveScenario02Progress('/scenario02-romance/quiz');
+  useStageClassName('bition-stage');
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -65,35 +67,39 @@ export function Quiz() {
   }
 
   return (
-    <Card>
-      <div className="quiz-progress-label">
-        <span>第 {index + 1} 題／共 {QUESTIONS.length} 題</span>
+    <div className="bition-app">
+      <div className="bition-home-scroll">
+        <Card>
+          <div className="quiz-progress-label">
+            <span>第 {index + 1} 題／共 {QUESTIONS.length} 題</span>
+          </div>
+          <div className="progress">
+            <div className="bar" style={{ width: `${((index + (selected !== null ? 1 : 0)) / QUESTIONS.length) * 100}%` }} />
+          </div>
+          <h2 style={{ marginTop: 18 }}>{question.q}</h2>
+          <div className="btns">
+            {question.options.map((opt, i) => {
+              let cls = 'btn secondary quiz-option';
+              if (selected !== null) {
+                if (i === question.correct) cls += ' correct';
+                else if (i === selected) cls += ' wrong';
+              }
+              return (
+                <button key={i} type="button" className={cls} onClick={() => select(i)}>
+                  {String.fromCharCode(65 + i)}. {opt}
+                </button>
+              );
+            })}
+          </div>
+          {selected !== null && (
+            <div className="quiz-explain">
+              <p>{selected === question.correct ? '✅ 答對了' : '❌ 答錯了'}</p>
+              <p>{question.explain}</p>
+              <Button onClick={next}>{isLast ? '查看結果' : '下一題'}</Button>
+            </div>
+          )}
+        </Card>
       </div>
-      <div className="progress">
-        <div className="bar" style={{ width: `${((index + (selected !== null ? 1 : 0)) / QUESTIONS.length) * 100}%` }} />
-      </div>
-      <h2 style={{ marginTop: 18 }}>{question.q}</h2>
-      <div className="btns">
-        {question.options.map((opt, i) => {
-          let cls = 'btn secondary quiz-option';
-          if (selected !== null) {
-            if (i === question.correct) cls += ' correct';
-            else if (i === selected) cls += ' wrong';
-          }
-          return (
-            <button key={i} type="button" className={cls} onClick={() => select(i)}>
-              {String.fromCharCode(65 + i)}. {opt}
-            </button>
-          );
-        })}
-      </div>
-      {selected !== null && (
-        <div className="quiz-explain">
-          <p>{selected === question.correct ? '✅ 答對了' : '❌ 答錯了'}</p>
-          <p>{question.explain}</p>
-          <Button onClick={next}>{isLast ? '查看結果' : '下一題'}</Button>
-        </div>
-      )}
-    </Card>
+    </div>
   );
 }

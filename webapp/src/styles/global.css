@@ -479,3 +479,86 @@
 .link-card-badge{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#25d0ff,#5578ff);color:#04101f;font-weight:900;display:grid;place-items:center;margin-bottom:8px}
 .link-title{color:#f5f8fc;font-weight:700;margin-top:2px}
 .link-card-cta{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:#36d6c6;font-weight:700;font-size:13px}
+
+/* ---- Gesture-only UX pass: no checkboxes, big buttons, 165 hotline,
+   auto-playing media, brand landing, mobile-portrait everywhere ---------- */
+
+/* Registration: pure display cards, never real <input> elements. */
+.bition-display-field{display:flex;justify-content:space-between;align-items:center;min-height:52px;padding:0 16px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.03);color:#9db4d4;font-size:14px}
+.bition-display-field strong{color:#eef6ff;font-weight:700;letter-spacing:.02em}
+.bition-terms-static{display:flex;align-items:center;min-height:52px;padding:0 16px;border:1px solid rgba(57,217,138,.35);border-radius:14px;background:rgba(57,217,138,.08);color:#8fe9bd;font-size:13px;line-height:1.5;margin:6px 0}
+
+/* Red-warning action buttons: three large always-tappable buttons, no
+   checkbox gate. "Continue anyway" is deliberately the least prominent. */
+.bition-warning-actions{display:grid;gap:12px;margin-top:20px}
+.bition-warn-btn{min-height:56px;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;border:0}
+.bition-warn-btn-stop{background:linear-gradient(135deg,#ff4d6d,#a9183c);color:#fff}
+.bition-warn-btn-hotline{background:linear-gradient(135deg,#2b7fff,#1a4fc4);color:#fff}
+.bition-warn-btn-continue{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#9db4d4;font-weight:600;font-size:14px}
+
+/* 165 hotline overlay - no real tel: link anywhere, purely educational. */
+.hotline165-overlay{position:fixed;inset:0;z-index:10000;background:rgba(2,6,14,.86);display:flex;align-items:center;justify-content:center;padding:24px}
+.hotline165-card{width:min(360px,100%);background:#0b1729;border:1px solid rgba(43,127,255,.4);border-radius:22px;padding:28px 22px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.hotline165-icon{width:64px;height:64px;border-radius:50%;background:rgba(43,127,255,.16);border:1px solid rgba(43,127,255,.5);color:#6db2ff;display:grid;place-items:center;margin:0 auto 14px}
+.hotline165-card h2{color:#fff;font-size:20px;margin:0 0 10px}
+.hotline165-card p{color:#c9d6ea;font-size:14px;line-height:1.6;margin-bottom:18px}
+
+/* Brand landing page. */
+.bition-landing-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:16px 16px 24px;text-align:center}
+.bition-landing-scroll::-webkit-scrollbar{display:none}
+.bition-landing-visual{position:relative;height:180px;margin:18px auto;display:grid;place-items:center}
+.bition-landing-orbit{position:absolute;width:150px;height:150px;border-radius:50%;border:1px solid rgba(37,208,255,.3);animation:bitionOrbitSpin 12s linear infinite}
+.bition-landing-orbit:before{content:"";position:absolute;inset:22px;border-radius:50%;border:1px solid rgba(85,120,255,.25);animation:bitionOrbitSpin 8s linear infinite reverse}
+.bition-landing-particle{position:absolute;width:6px;height:6px;border-radius:50%;background:#25d0ff;box-shadow:0 0 10px rgba(37,208,255,.9);animation:bitionParticleFloat 4s ease-in-out infinite}
+.bition-landing-particle.p1{top:18%;left:22%;animation-delay:0s}
+.bition-landing-particle.p2{top:70%;left:28%;animation-delay:.8s;background:#39d98a;box-shadow:0 0 10px rgba(57,217,138,.9)}
+.bition-landing-particle.p3{top:26%;left:76%;animation-delay:1.6s}
+.bition-landing-particle.p4{top:66%;left:72%;animation-delay:2.4s;background:#5578ff;box-shadow:0 0 10px rgba(85,120,255,.9)}
+.bition-landing-symbol{position:relative;font-weight:900;font-size:15px;letter-spacing:.18em;color:#25d0ff;text-shadow:0 0 16px rgba(37,208,255,.7)}
+.bition-landing-title{color:#fff;font-size:22px;line-height:1.3;margin:6px 0}
+.bition-landing-sub{color:#8ea3c2;font-size:14px;line-height:1.6}
+.bition-landing-stats{display:grid;gap:10px;margin-top:20px;text-align:left}
+.bition-landing-stat{display:flex;justify-content:space-between;align-items:center;padding:16px 18px}
+.bition-landing-stat span{color:#8ea3c2;font-size:13px}
+.bition-landing-stat strong{color:#eef6ff;font-size:16px;font-weight:800}
+.bition-landing-cta{flex:none;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:rgba(5,13,28,.9);border-top:1px solid rgba(255,255,255,.08)}
+@keyframes bitionOrbitSpin{to{transform:rotate(360deg)}}
+@keyframes bitionParticleFloat{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-14px);opacity:1}}
+
+/* Brand transition overlay used for every LINE<->platform hand-off. */
+.bition-opening-overlay{position:fixed;inset:0;z-index:10000;background:#050d1c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:bitionFadeIn .3s ease-out}
+.bition-opening-logo{font-size:24px;font-weight:900;color:#fff;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.bition-opening-logo span{font-size:12px;letter-spacing:.25em;color:#25d0ff;margin-top:2px}
+.bition-opening-spinner{width:40px;height:40px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:#25d0ff;animation:lineVideoSpin .8s linear infinite}
+.bition-opening-overlay p{color:#8ea3c2;font-size:14px}
+@keyframes bitionFadeIn{from{opacity:0}to{opacity:1}}
+
+/* "即將返回幣勝客" pill shown briefly before every return-to-platform switch. */
+.line-returning-tip{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:9998;background:rgba(5,13,28,.92);color:#eef6ff;font-size:13px;padding:10px 18px;border-radius:999px;border:1px solid rgba(37,208,255,.4);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+
+/* Platform-home "alive, not static HTML" touches. */
+.bition-pulse{animation:bitionPulse 1.6s ease-in-out infinite}
+@keyframes bitionPulse{0%,100%{opacity:1}50%{opacity:.55}}
+.bition-asset-trend{width:100%;height:36px;margin-top:10px}
+.bition-trend-line{stroke:url(#chartGlow);animation:drawTrend 3.5s ease-out infinite alternate}
+.bition-status-pill.running{animation:bitionBreathe 2.2s ease-in-out infinite}
+@keyframes bitionBreathe{0%,100%{box-shadow:0 0 0 0 rgba(57,217,138,.35)}50%{box-shadow:0 0 0 6px rgba(57,217,138,0)}}
+.bition-node-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#39d98a;margin-right:8px;box-shadow:0 0 6px rgba(57,217,138,.8);animation:bitionBlink 1.4s ease-in-out infinite}
+@keyframes bitionBlink{0%,100%{opacity:1}50%{opacity:.25}}
+
+.bition-ticker-card{overflow:hidden}
+.bition-section-title.small{font-size:15px;margin-bottom:10px}
+.bition-ticker{height:96px;overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent)}
+.bition-ticker-track{animation:bitionTickerScroll 9s linear infinite}
+.bition-ticker-row{font-size:12.5px;color:#8ea3c2;padding:6px 0;white-space:nowrap;font-variant-numeric:tabular-nums}
+@keyframes bitionTickerScroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+
+/* Fixed 165 reminder bar on the final educational disclosure page. */
+.bition-165-fixed-bar{flex:none;display:flex;justify-content:space-between;align-items:center;padding:14px 18px calc(14px + env(safe-area-inset-bottom));background:rgba(25,4,10,.95);border-top:1px solid var(--danger);color:#ff8fa3;font-size:13px;font-weight:700}
+.bition-165-fixed-bar strong{color:#fff;font-size:14px}
+
+.bition-ending-note{max-width:100%}
+
+/* Quiz/disclosure buttons need to stay hand-gesture friendly even now that
+   they live inside the same narrow phone frame as everything else. */
+.quiz-option{min-height:56px;display:flex;align-items:center}

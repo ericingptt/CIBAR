@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { ButtonGroup } from '../../components/ui/ButtonGroup';
 import { Button } from '../../components/ui/Button';
+import { useStageClassName } from '../../shell/StageClassContext';
 import { resetScenario02 } from '../../lib/scenario02Store';
 
 function tier(score) {
@@ -12,6 +13,7 @@ function tier(score) {
 }
 
 export function QuizResult() {
+  useStageClassName('bition-stage');
   const { state } = useLocation();
   const navigate = useNavigate();
   const [showWrong, setShowWrong] = useState(false);
@@ -22,39 +24,43 @@ export function QuizResult() {
   const wrongOnes = questions.filter((q, i) => answers[i] !== q.correct);
 
   return (
-    <Card>
-      <h2>你的反詐辨識分數</h2>
-      <div className="quiz-score">{score} / {questions.length || 5}</div>
-      <p><b>{t.title}</b></p>
-      <p>{t.body}</p>
+    <div className="bition-app">
+      <div className="bition-home-scroll">
+        <Card>
+          <h2>你的反詐辨識分數</h2>
+          <div className="quiz-score">{score} / {questions.length || 5}</div>
+          <p><b>{t.title}</b></p>
+          <p>{t.body}</p>
 
-      {wrongOnes.length > 0 && (
-        <>
-          <Button variant="secondary" onClick={() => setShowWrong((v) => !v)}>
-            {showWrong ? '收起錯誤題目' : '查看錯誤題目'}
-          </Button>
-          {showWrong && wrongOnes.map((q, i) => (
-            <div key={i} className="quiz-explain">
-              <p>{q.q}</p>
-              <p>正確答案：{q.options[q.correct]}</p>
-              <p className="mini">{q.explain}</p>
-            </div>
-          ))}
-        </>
-      )}
+          {wrongOnes.length > 0 && (
+            <>
+              <Button variant="secondary" onClick={() => setShowWrong((v) => !v)}>
+                {showWrong ? '收起錯誤題目' : '查看錯誤題目'}
+              </Button>
+              {showWrong && wrongOnes.map((q, i) => (
+                <div key={i} className="quiz-explain">
+                  <p>{q.q}</p>
+                  <p>正確答案：{q.options[q.correct]}</p>
+                  <p className="mini">{q.explain}</p>
+                </div>
+              ))}
+            </>
+          )}
 
-      <ButtonGroup>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            resetScenario02();
-            navigate('/scenario02-romance', { replace: true });
-          }}
-        >
-          重新體驗
-        </Button>
-        <Button to="/scenario02-romance/ending">進入 165 結尾提醒</Button>
-      </ButtonGroup>
-    </Card>
+          <ButtonGroup>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                resetScenario02();
+                navigate('/scenario02-romance', { replace: true });
+              }}
+            >
+              重新體驗
+            </Button>
+            <Button to="/scenario02-romance/ending">進入 165 結尾提醒</Button>
+          </ButtonGroup>
+        </Card>
+      </div>
+    </div>
   );
 }
