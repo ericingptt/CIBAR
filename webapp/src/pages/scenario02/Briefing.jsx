@@ -1,46 +1,32 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { TopBar } from '../../shell/TopBar';
-import { Button } from '../../components/ui/Button';
-import { ButtonGroup } from '../../components/ui/ButtonGroup';
-import { loadScenario02Progress, resetScenario02Progress } from '../../lib/scenario02Store';
+import { Link, useNavigate } from 'react-router-dom';
+import { useStageClassName } from '../../shell/StageClassContext';
 
 const START_ROUTE = '/scenario02-romance/dating-browse';
 
+// Always a fresh, no-choices start screen - no "繼續上次進度"/"重新開始"
+// card. Whether this run is actually starting from scratch is decided
+// upstream (Scanner calls resetScenario02() before navigating here); this
+// page's only job is to show the intro and hand off to dating-browse.
 export function Briefing() {
+  useStageClassName('romance-brief-stage');
   const navigate = useNavigate();
-  const [progress, setProgress] = useState(null);
-
-  useEffect(() => {
-    const saved = loadScenario02Progress();
-    if (saved?.route && saved.route !== '/scenario02-romance') setProgress(saved);
-  }, []);
-
-  function restart() {
-    resetScenario02Progress();
-    navigate(START_ROUTE);
-  }
 
   return (
-    <>
-      <TopBar brand="情境二｜假交友詐騙" homeHref="/scanner" homeLabel="繼續掃描" />
-      <section className="hero">
-        <h1>心動配對</h1>
-        <p className="mini">假交友 × 虛擬貨幣投資詐騙</p>
-        <p>
-          一個普通的配對，會把你帶向什麼地方？你將經歷交友軟體配對、私訊培養感情，最後被引導進入假虛擬貨幣平台，並在申請出金時被要求支付一筆「保證金」。
+    <div className="romance-brief-page">
+      <div className="romance-brief-topline">
+        <span className="romance-brief-eyebrow">情境二｜假交友詐騙</span>
+        <Link className="romance-brief-back" to="/scanner">返回掃描</Link>
+      </div>
+      <div className="romance-brief-body">
+        <h1 className="romance-brief-title">心動配對</h1>
+        <p className="romance-brief-subtitle">從交友軟體到虛擬貨幣投資陷阱</p>
+        <p className="romance-brief-desc">
+          你將體驗一段從配對、培養感情，到被引導進入假投資平台的過程。
         </p>
-        {progress ? (
-          <ButtonGroup>
-            <Button onClick={() => navigate(progress.route)}>繼續上次進度</Button>
-            <Button variant="secondary" onClick={restart}>重新開始</Button>
-          </ButtonGroup>
-        ) : (
-          <ButtonGroup>
-            <Button to={START_ROUTE}>開始體驗</Button>
-          </ButtonGroup>
-        )}
-      </section>
-    </>
+      </div>
+      <button type="button" className="romance-brief-cta" onClick={() => navigate(START_ROUTE)}>
+        開始體驗
+      </button>
+    </div>
   );
 }

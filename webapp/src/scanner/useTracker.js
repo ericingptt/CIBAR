@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TRACKER_TARGET_SRC, TRACKER_TARGETS } from './trackerConfig';
 import { getSharedCamera } from '../camera/sharedCamera';
 import { ENABLE_MINDAR_SCANNER } from '../config/features';
+import { resetScenario02 } from '../lib/scenario02Store';
 
 const SCANNING_MESSAGE = '啟動相機與追蹤中……請將鏡頭對準目標圖片';
 
@@ -65,6 +66,9 @@ export function useTracker(containerRef) {
     function triggerNavigation(target) {
       if (navigateTriggered) return;
       navigateTriggered = true;
+      // Same rule as the "模擬掃到" buttons in Scanner.jsx: entering
+      // scenario02 this way must also always start a fresh run.
+      if (target.scenario === 'romance') resetScenario02();
       setStatus('辨識成功：' + target.label);
       setTimeout(() => navigate(target.route), 1000);
     }

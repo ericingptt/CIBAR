@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 
-// Route-level progress persistence for scenario02. Deliberately coarse: we
-// remember which page the player last reached, not mid-conversation state -
-// every scripted page here replays from its own start in well under a
-// minute, so a full per-message resume isn't worth the complexity. This is
-// enough to satisfy "refresh keeps your place" and "restart the scenario".
+// Tracks which page the player last reached, purely for the reset checklist
+// below (resetScenario02() clears it along with everything else) - nothing
+// reads it back to offer a "resume" UI. A mid-scenario browser refresh
+// already lands back on the right page for free, since the route itself
+// lives in the URL (HashRouter), not in this value.
 const KEY = 'cibar-scenario02-progress';
 
 export function saveScenario02Progress(route) {
@@ -15,25 +15,7 @@ export function saveScenario02Progress(route) {
   }
 }
 
-export function loadScenario02Progress() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function resetScenario02Progress() {
-  try {
-    localStorage.removeItem(KEY);
-  } catch {
-    // ignore
-  }
-}
-
-// Call from every scenario02 page (except Briefing) so a refresh anywhere
-// in the flow can be resumed from Briefing's "繼續上次進度".
+// Call from every scenario02 page (except Briefing).
 export function useSaveScenario02Progress(route) {
   useEffect(() => {
     saveScenario02Progress(route);
@@ -87,5 +69,38 @@ export function getEmilyDecision() {
     return localStorage.getItem(EMILY_DECISION_KEY);
   } catch {
     return null;
+  }
+}
+
+// Every persisted scenario02 key shares this prefix (KEY/RESOLVED_KEY/
+// EMILY_DECISION_KEY above), so sweeping by prefix - rather than naming each
+// key here individually - also catches anything added later without this
+// function needing an update. Everything else the scenario touches (quiz
+// answers, deposit/profit/withdrawal amounts, platform registration, watched
+// videos, dialogue timelines...) only ever lives in per-page React state,
+// which already resets on its own the moment that page unmounts; there is no
+// second, page-local storage mechanism for any of it to fall out of sync
+// with.
+const SCENARIO02_KEY_PREFIX = 'cibar-scenario02-';
+
+// The single reset entry point for "start scenario02 over from nothing" -
+// used both when re-entering from the Scanner and by every in-scenario
+// "重新開始" button. Clears every persisted key so the next mount of
+// DatingBrowse/Briefing/etc. recomputes its initial state (index 0, no
+// resolved cards, no Emily decision, no saved route) instead of resuming.
+export function resetScenario02() {
+  try {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith(SCENARIO02_KEY_PREFIX))
+      .forEach((k) => localStorage.removeItem(k));
+  } catch {
+    // localStorage unavailable - nothing to clear.
+  }
+  try {
+    Object.keys(sessionStorage)
+      .filter((k) => k.startsWith(SCENARIO02_KEY_PREFIX))
+      .forEach((k) => sessionStorage.removeItem(k));
+  } catch {
+    // sessionStorage unavailable - nothing to clear.
   }
 }
