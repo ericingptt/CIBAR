@@ -4,6 +4,7 @@ import { useDialogueTree } from '../../lib/dialogueTree';
 import { useSaveScenario02Progress, getEmilyDecision } from '../../lib/scenario02Store';
 import { useStageClassName } from '../../shell/StageClassContext';
 import { ProfileAvatar } from './components/ProfileAvatar';
+import { SafetyAlert } from './components/SafetyAlert';
 import { SuggestedReplies } from './tanu/SuggestedReplies';
 
 const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/profiles/emily.webp`;
@@ -103,6 +104,7 @@ export function DatingChat() {
   // 'idle' -> 'tip' (shown right after joining LINE) -> 'ready' (tip
   // dismissed, either by the user or after ~4s, continue button revealed).
   const [joinPhase, setJoinPhase] = useState('idle');
+  const [tipFading, setTipFading] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const scrollRef = useRef(null);
   const tipTimerRef = useRef(null);
@@ -118,7 +120,11 @@ export function DatingChat() {
 
   function dismissTip() {
     clearTimeout(tipTimerRef.current);
-    setJoinPhase('ready');
+    setTipFading(true);
+    tipTimerRef.current = setTimeout(() => {
+      setJoinPhase('ready');
+      setTipFading(false);
+    }, 180);
   }
 
   useEffect(() => () => clearTimeout(tipTimerRef.current), []);
@@ -166,12 +172,12 @@ export function DatingChat() {
           </div>
         )}
         {joinPhase === 'tip' && (
-          <div className="tip-inline">
-            陌生人將對話導向私人通訊軟體，可能使對話離開原平台的檢舉與安全機制。
-            <div className="btns">
-              <button className="btn secondary" type="button" onClick={dismissTip}>知道了</button>
-            </div>
-          </div>
+          <SafetyAlert
+            className={tipFading ? 'safety-alert-fading' : ''}
+            text="陌生人將對話導向私人通訊軟體，可能使對話離開原平台的檢舉與安全機制。"
+            acknowledged={false}
+            onAcknowledge={dismissTip}
+          />
         )}
         {joinPhase === 'ready' && (
           <button type="button" className="tanu-primary-btn" onClick={goToLine}>前往 LINE</button>
