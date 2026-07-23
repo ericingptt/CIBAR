@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { Chat, Message, TypingIndicator } from '../../components/ui/Chat';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Chat, Message, TypingIndicator, IncomingMessage, OutgoingMessage } from '../../components/ui/Chat';
 import { Button } from '../../components/ui/Button';
+import { useChatClock, computeTimestamps, formatTime } from '../../lib/chatTime';
 
 // This page reimplements its own scripted-chat engine (rather than reusing
 // useTypedMessages) because it needs branching reply paths, same as the
@@ -46,6 +47,8 @@ export function LineTeacher() {
   const [nextVisible, setNextVisible] = useState(false);
   const startedRef = useRef(false);
   const chatRef = useRef(null);
+  const chatStart = useChatClock('cibar-scenario01-lineteacher-clock');
+  const timestamps = useMemo(() => computeTimestamps(messages, chatStart), [messages, chatStart]);
 
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
@@ -108,9 +111,18 @@ export function LineTeacher() {
         </div>
       </header>
       <Chat ref={chatRef} variant="line-chat">
-        {messages.map((m, i) => (
-          <Message key={i} type={m.type}>{m.text}</Message>
-        ))}
+        {messages.map((m, i) => {
+          const time = timestamps[i] ? formatTime(timestamps[i]) : null;
+          return m.type === 'user' ? (
+            <OutgoingMessage key={i} time={time}>
+              <Message type={m.type}>{m.text}</Message>
+            </OutgoingMessage>
+          ) : (
+            <IncomingMessage key={i} time={time}>
+              <Message type={m.type}>{m.text}</Message>
+            </IncomingMessage>
+          );
+        })}
         {isTyping && <TypingIndicator label="正在輸入……" />}
       </Chat>
       <div className="btns chat-actions" hidden={!choiceVisible}>
