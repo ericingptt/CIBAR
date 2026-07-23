@@ -869,9 +869,19 @@ export function PrivateChat() {
   // time (its resumeId), hand the platform whatever state patch this beat
   // implies, and hand control over to the investment platform - a full
   // screen switch, not an overlay, same as the original link-card handoff.
+  //
+  // A resumed checkpoint's restored timeline can itself already end in a
+  // goto-platform item (that's exactly what was pushed right before this
+  // checkpoint was saved on the previous visit) - only a NEWLY pushed one,
+  // past whatever length we resumed with, should ever trigger another
+  // switch. Without this guard, resuming would immediately re-fire the old
+  // switch and bounce straight back to the platform before the resumed
+  // dialogue ever gets a chance to render.
+  const initialLengthRef = useRef(checkpoint ? checkpoint.timeline.length : 0);
   const switchedAwayRef = useRef(false);
   useEffect(() => {
     if (switchedAwayRef.current) return;
+    if (timeline.length <= initialLengthRef.current) return;
     const last = timeline[timeline.length - 1];
     if (!last || last.kind !== 'goto-platform') return;
     switchedAwayRef.current = true;
