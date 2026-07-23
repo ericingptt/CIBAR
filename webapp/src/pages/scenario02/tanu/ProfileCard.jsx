@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { UserRound } from 'lucide-react';
 
 const SWIPE_THRESHOLD = 110;
@@ -16,21 +16,52 @@ export const ProfileCard = forwardRef(function ProfileCard({ person, onSwiped },
   const [photoFailed, setPhotoFailed] = useState(false);
   const startXRef = useRef(0);
   const pointerIdRef = useRef(null);
+  // A synchronous guard, not state: two clicks/taps landing in the same
+  // tick both see `exiting` as its pre-update value (setState is async),
+  // which would let both call finishSwipe and schedule two onSwiped calls.
+  const processingRef = useRef(false);
+  const exitTimerRef = useRef(null);
+  const mountedRef = useRef(true);
+
+  // The same ProfileCard instance is reused across people (DatingBrowse
+  // doesn't remount it per card outside the Sophie/Lina mini-chat detour),
+  // so a stale exit/drag/error state from the previous card must not carry
+  // over onto the next one.
+  useEffect(() => {
+    setDrag({ x: 0, active: false });
+    setExiting(null);
+    setPhotoFailed(false);
+    processingRef.current = false;
+  }, [person?.id]);
+
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+      clearTimeout(exitTimerRef.current);
+    },
+    [],
+  );
 
   function finishSwipe(direction) {
-    if (exiting) return;
+    if (processingRef.current || !person) return;
+    processingRef.current = true;
     setExiting(direction);
     setDrag({ x: direction === 'like' ? EXIT_DISTANCE : -EXIT_DISTANCE, active: false });
-    setTimeout(() => onSwiped?.(direction), EXIT_MS);
+    exitTimerRef.current = setTimeout(() => {
+      if (mountedRef.current) onSwiped?.(direction);
+    }, EXIT_MS);
   }
 
   useImperativeHandle(ref, () => ({
     swipeLike: () => finishSwipe('like'),
     swipePass: () => finishSwipe('pass'),
+    get isBusy() {
+      return processingRef.current;
+    },
   }));
 
   function onPointerDown(e) {
-    if (exiting) return;
+    if (processingRef.current) return;
     pointerIdRef.current = e.pointerId;
     e.currentTarget.setPointerCapture(e.pointerId);
     startXRef.current = e.clientX;
@@ -53,6 +84,8 @@ export const ProfileCard = forwardRef(function ProfileCard({ person, onSwiped },
       setDrag({ x: 0, active: false });
     }
   }
+
+  if (!person) return null;
 
   const rotate = Math.max(-MAX_ROTATE_DEG, Math.min(MAX_ROTATE_DEG, drag.x / 14));
   const stampOpacity = Math.min(1, Math.abs(drag.x) / SWIPE_THRESHOLD);
