@@ -77,10 +77,23 @@
 .video-modal-card{max-width:520px;margin:0 auto}
 
 .shot-card,.link-card{background:#08111f;border:1px solid rgba(54,214,198,.35);border-radius:16px;padding:14px;color:#f5f8fc;max-width:84%;margin:10px 0}
-.shot-card .shot-brand,.link-card .link-brand{color:#36d6c6;font-weight:900;font-size:13px;letter-spacing:.08em}
-.shot-card .shot-row{display:flex;justify-content:space-between;font-size:14px;margin-top:8px;color:#8ea0b8}
-.shot-card .shot-row strong{color:#35d07f}
+.shot-card .shot-brand,.link-card .link-brand,.shot-brand{color:#36d6c6;font-weight:900;font-size:13px;letter-spacing:.08em}
+.shot-card .shot-row,.shot-row{display:flex;justify-content:space-between;font-size:14px;margin-top:8px;color:#8ea0b8}
+.shot-card .shot-row strong,.shot-row strong{color:#35d07f}
 .link-card .link-url{color:#8ea0b8;font-size:13px;margin-top:6px}
+
+/* Emily's "photo" message in PrivateChat - tap-to-enlarge, not a fully
+   expanded card sitting inline in the chat flow. */
+.line-image-thumb{position:relative;display:block;text-align:left;width:200px;background:#08111f;border:1px solid rgba(54,214,198,.35);border-radius:16px;padding:14px;margin:10px 0;cursor:pointer}
+.line-image-thumb-zoom{position:absolute;right:10px;bottom:10px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.12);color:#36d6c6;display:grid;place-items:center}
+.line-image-lightbox{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:24px}
+.line-image-lightbox-card{position:relative;width:min(360px,100%);background:#08111f;border:1px solid rgba(54,214,198,.4);border-radius:20px;padding:24px 20px;color:#f5f8fc}
+.line-image-lightbox-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;display:grid;place-items:center;cursor:pointer}
+
+/* Investment link card - clickable only while it's the active gate the
+   dialogue is paused on; once resolved it's plain history (see LinkCard). */
+.link-card-clickable{display:block;width:100%;text-align:left;cursor:pointer;position:relative}
+.link-card-icon{position:absolute;right:12px;bottom:12px;color:#36d6c6}
 
 .tip-inline{background:#fff3d6;border:1px solid #f4b740;border-radius:14px;padding:12px 14px;margin:10px 0;font-size:14px;color:#6b4a00;max-width:84%}
 .tip-inline .tip-toggle{color:#8a5b00;background:none;border:0;padding:0;margin-top:6px;cursor:pointer;text-decoration:underline;font-size:13px}
@@ -108,12 +121,6 @@
 .platform-nav button{background:none;border:0;color:var(--muted);font-size:13px;padding:6px 4px;cursor:pointer}
 .platform-nav button.active{color:var(--accent);font-weight:800}
 .platform-drawer-toggle{position:fixed;right:24px;bottom:24px;z-index:5;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
-.chat-drawer{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;padding:20px;z-index:8}
-.chat-drawer.open{display:flex}
-.chat-drawer-panel{background:#eef7f2;border-radius:24px 24px 0 0;max-width:520px;width:100%;max-height:70%;display:flex;flex-direction:column;overflow:hidden}
-.chat-drawer-header{background:rgba(37,51,67,.96);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;font-weight:800}
-.chat-drawer-header button{background:none;border:0;color:#fff;font-size:20px;cursor:pointer}
-.chat-drawer .chat{border-radius:0;flex:1;overflow-y:auto}
 
 .mini-chat{background:#dcebf7;border-radius:16px;padding:14px;margin:14px 0;max-height:280px;overflow-y:auto}
 

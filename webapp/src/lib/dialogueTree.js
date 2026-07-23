@@ -10,16 +10,30 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 //   { id, divider: 'Day 3', wait, next }
 //   { id, tip: 'text', next }
 //   { id, video: { videoId, duration, lines: [...] }, next }
+//   { id, image: { src, alt }, next }
+//   { id, link: { ... }, next }
 //   { id, choice: true, options: [{ label, userText, reply, replyWait, typingWait, next }] }
 //   { id, end: true }
-export function useDialogueTree(nodes, startId, { startDelay = 0 } = {}) {
+//
+// video/image/link all follow the same "gate" shape: reaching the node pushes
+// a tappable card into the timeline and stops advancing (pendingVideo/
+// pendingImage/pendingLink) until the matching completeX() is called by
+// whatever UI renders that card - the player must interact with the card
+// itself, nothing auto-advances past one.
+export function useDialogueTree(
+  nodes,
+  startId,
+  { startDelay = 0, initialTimeline, resumeId, initialWatchedVideoIds } = {},
+) {
   const nodesById = useMemo(() => Object.fromEntries(nodes.map((n) => [n.id, n])), [nodes]);
-  const [timeline, setTimeline] = useState([]);
+  const [timeline, setTimeline] = useState(() => initialTimeline ?? []);
   const [isTyping, setIsTyping] = useState(false);
   const [pendingChoice, setPendingChoice] = useState(null);
   const [pendingVideo, setPendingVideo] = useState(null);
+  const [pendingImage, setPendingImage] = useState(null);
+  const [pendingLink, setPendingLink] = useState(null);
   const [pendingTip, setPendingTip] = useState(null);
-  const [watchedVideoIds, setWatchedVideoIds] = useState(() => new Set());
+  const [watchedVideoIds, setWatchedVideoIds] = useState(() => new Set(initialWatchedVideoIds));
   const [done, setDone] = useState(false);
   const [endReason, setEndReason] = useState(null);
   const startedRef = useRef(false);
@@ -63,6 +77,16 @@ export function useDialogueTree(nodes, startId, { startDelay = 0 } = {}) {
       setPendingVideo({ next: node.next, videoId: node.video.videoId });
       return;
     }
+    if (node.image) {
+      push({ kind: 'image', ...node.image, key: node.id });
+      setPendingImage({ next: node.next });
+      return;
+    }
+    if (node.link) {
+      push({ kind: 'link', ...node.link, key: node.id });
+      setPendingLink({ next: node.next });
+      return;
+    }
     if (node.choice) {
       setPendingChoice({ options: node.options });
       return;
@@ -73,7 +97,10 @@ export function useDialogueTree(nodes, startId, { startDelay = 0 } = {}) {
       schedule(() => {
         setIsTyping(false);
         push({ kind: 'msg', from: 'emily', text: node.text });
-        schedule(() => advance(node.next), node.wait ?? 1700);
+        // 600-1200ms for a short single line, 900-1600ms for a longer or
+        // two-line (\n joined) bubble - a bare heuristic on text length
+        // rather than per-node tuning across the whole script.
+        schedule(() => advance(node.next), node.wait ?? (node.text.length > 14 || node.text.includes('\n') ? 1300 : 900));
       }, node.typingWait ?? 900);
     } else {
       push({ kind: 'msg', from: node.from, text: node.text });
@@ -84,7 +111,11 @@ export function useDialogueTree(nodes, startId, { startDelay = 0 } = {}) {
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    schedule(() => advance(startId), startDelay);
+    // Resuming a saved checkpoint (e.g. returning from the investment
+    // platform mid-conversation): the timeline was already hydrated from
+    // initialTimeline above, so pick up from resumeId instead of replaying
+    // the whole script from startId.
+    schedule(() => advance(resumeId ?? startId), startDelay);
     return () => {
       timeoutsRef.current.forEach(clearTimeout);
     };
@@ -102,7 +133,10 @@ export function useDialogueTree(nodes, startId, { startDelay = 0 } = {}) {
         schedule(() => {
           setIsTyping(false);
           push({ kind: 'msg', from: 'emily', text: opt.reply });
-          schedule(() => advance(opt.next), opt.replyWait ?? 1500);
+          schedule(
+            () => advance(opt.next),
+            opt.replyWait ?? (opt.reply.length > 14 || opt.reply.includes('\n') ? 1300 : 900),
+          );
         }, opt.typingWait ?? 900);
       }, 500);
     } else {
@@ -125,6 +159,24 @@ export function useDialogueTree(nodes, startId, { startDelay = 0 } = {}) {
     schedule(() => advance(next), 300);
   }
 
+  function completeImage() {
+    if (!pendingImage) return;
+    const { next } = pendingImage;
+    setPendingImage(null);
+    schedule(() => advance(next), 400);
+  }
+
+  // Doesn't advance immediately - the link node stays pending while the
+  // player is away on the platform page, and only resolves once whatever
+  // navigated away calls this after coming back (see PrivateChat's
+  // save/resume-checkpoint flow).
+  function completeLink() {
+    if (!pendingLink) return;
+    const { next } = pendingLink;
+    setPendingLink(null);
+    schedule(() => advance(next), 400);
+  }
+
   return {
     timeline,
     isTyping,
@@ -132,6 +184,10 @@ export function useDialogueTree(nodes, startId, { startDelay = 0 } = {}) {
     choose,
     pendingVideo,
     completeVideo,
+    pendingImage,
+    completeImage,
+    pendingLink,
+    completeLink,
     pendingTip,
     completeTip,
     watchedVideoIds,

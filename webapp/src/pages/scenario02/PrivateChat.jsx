@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search, Phone, Menu, Play } from 'lucide-react';
+import { ChevronLeft, Search, Phone, Menu, Play, ZoomIn, X, ExternalLink } from 'lucide-react';
 import { useDialogueTree } from '../../lib/dialogueTree';
-import { useSaveScenario02Progress } from '../../lib/scenario02Store';
+import {
+  useSaveScenario02Progress,
+  savePrivateChatCheckpoint,
+  takePrivateChatCheckpoint,
+} from '../../lib/scenario02Store';
 import { useStageClassName } from '../../shell/StageClassContext';
 import { ProfileAvatar } from './components/ProfileAvatar';
 import { SafetyAlert } from './components/SafetyAlert';
@@ -34,15 +38,14 @@ function formatDivider(label) {
 
 const NODES = [
   { id: 'join-sys', from: 'system', text: '你已加入 Emily 為好友', wait: 800, next: 'join-emily1' },
-  { id: 'join-emily1', from: 'emily', text: '找到你了～', next: 'join-emily2' },
-  { id: 'join-emily2', from: 'emily', text: '這樣就不怕漏掉訊息了😊', next: 'join-choice' },
+  { id: 'join-emily1', from: 'emily', text: '加到了～是你沒錯吧😂', next: 'join-choice' },
   {
     id: 'join-choice',
     choice: true,
     options: [
-      { label: '妳動作很快耶', reply: '哈哈，找到你的時候我還滿開心的。', next: 'day1-divider' },
-      { label: '哈哈，妳真的加了', reply: '說到就做到啊，我很少這樣的。', next: 'day1-divider' },
-      { label: '嗨，又見面了', reply: '對啊～感覺換個地方聊天，還滿新鮮的。', next: 'day1-divider' },
+      { label: '妳動作很快耶', reply: '是我叫你加的啊，當然要趕快出現。\n不然你被別人聊走怎麼辦。', next: 'day1-divider' },
+      { label: '對啦，是我', reply: '好，是你就好。\n還好沒加錯，不然我會有點失望。', next: 'day1-divider' },
+      { label: '所以妳是怕我跑掉嗎？', reply: '對啊。\n你好不容易被我找到，哪有那麼容易讓你跑。', next: 'day1-divider' },
     ],
   },
 
@@ -52,41 +55,57 @@ const NODES = [
     id: 'day1-r1-choice',
     choice: true,
     options: [
-      { label: '還有一點工作', reply: '那你先忙～\n可是忙完要記得回來找我。', next: 'day1-r2-ask' },
-      { label: '已經下班了', reply: '那剛好可以陪我聊一下。', next: 'day1-r2-ask' },
-      { label: '妳找我，我就不忙', reply: '你很會講耶😂\n那我是不是要小心一點？', next: 'day1-r2-ask' },
+      { label: '還有一點工作', reply: '好吧，那你先忙。\n但忙完第一個要回我，說好了。', next: 'day1-r2-ask' },
+      { label: '已經下班了', reply: '那剛好。\n今晚先把你借給我一下。', next: 'day1-r2-ask' },
+      { label: '妳找我，我就不忙', reply: '你不要這樣講。\n我等等真的會捨不得讓你去忙。', next: 'day1-r2-ask' },
     ],
   },
-  { id: 'day1-r2-ask', from: 'emily', text: '你平常都幾點睡？', next: 'day1-r2-choice' },
+  { id: 'day1-r2-ask', from: 'emily', text: '你每天都忙到這麼晚嗎？平常都幾點睡？', next: 'day1-r2-choice' },
   {
     id: 'day1-r2-choice',
     choice: true,
     options: [
-      { label: '十一點左右', reply: '那還算正常。不可以越聊越晚喔。', next: 'day3-divider' },
-      { label: '常常很晚', reply: '難怪你看起來每天都很累。以後我要提醒你。', next: 'day3-divider' },
-      { label: '看有沒有人陪我聊天', reply: '那我是不是要負責陪你？', next: 'day3-divider' },
+      { label: '十一點左右', reply: '那差不多。\n搞不好以後可以一起說晚安。', next: 'day1-r3-ask' },
+      { label: '常常很晚', reply: '那今天我來負責叫你去睡。\n免得你又撐到太晚。', next: 'day1-r3-ask' },
+      { label: '看有沒有人陪我聊天', reply: '所以你是在暗示我陪你到睡著嗎？', next: 'day1-r3-ask' },
     ],
   },
-
-  { id: 'day3-divider', divider: 'Day 3', next: 'day3-r1-ask' },
-  { id: 'day3-r1-ask', from: 'emily', text: '欸，你今天怎麼這麼久才回？', next: 'day3-r1-choice' },
+  { id: 'day1-r3-ask', from: 'emily', text: '那你今天應該還不會這麼早睡吧？', next: 'day1-r3-choice' },
   {
-    id: 'day3-r1-choice',
+    id: 'day1-r3-choice',
     choice: true,
     options: [
-      { label: '剛剛在忙', reply: '知道你在忙啦。\n可是還是會忍不住看一下手機。', next: 'day3-video' },
-      { label: '手機放旁邊沒看到', reply: '好啦～我還以為你故意不理我。', next: 'day3-video' },
-      { label: '妳在等我喔？', reply: '不行喔？我不能等你嗎？', next: 'day3-video' },
+      { label: '應該不會', reply: '好，那你不可以聊一聊突然睡著喔。', next: 'day1-converge1' },
+      { label: '看妳想聊多久', reply: '那你今晚可能要晚一點睡了。\n因為我還不想這麼快放你走。', next: 'day1-converge1' },
+      { label: '本來想睡了，現在不一定', reply: '所以是因為我，你突然不想睡了嗎？', next: 'day1-converge1' },
     ],
   },
+  { id: 'day1-converge1', from: 'emily', text: '反正不可以突然消失，先說好。', next: 'day1-user-promise' },
+  { id: 'day1-user-promise', from: 'user', text: '不會啦。', next: 'day1-converge2' },
+  { id: 'day1-converge2', from: 'emily', text: '你自己答應的喔。', next: 'day3-divider' },
+
+  { id: 'day3-divider', divider: 'Day 3', next: 'day3-ask1' },
+  { id: 'day3-ask1', from: 'emily', text: '你昨天晚上是不是聊到一半睡著了？', next: 'day3-ask2' },
+  { id: 'day3-ask2', from: 'emily', text: '是誰還答應我不會突然消失的🙄', next: 'day3-choice' },
+  {
+    id: 'day3-choice',
+    choice: true,
+    options: [
+      { label: '不小心睡著了啦', reply: '我就知道。\n害我還抱著手機等了一下。', next: 'day3-converge1' },
+      { label: '妳有在等我喔？', reply: '不然咧？\n我還真的一直在看你有沒有回。', next: 'day3-converge1' },
+      { label: '因為跟妳聊天太放鬆了', reply: '好吧，這個理由有哄到我。\n但下次要讓我知道，你是想著我睡著的。', next: 'day3-converge1' },
+    ],
+  },
+  { id: 'day3-converge1', from: 'emily', text: '好啦，先原諒你一次。', next: 'day3-converge2' },
+  { id: 'day3-converge2', from: 'emily', text: '不過我昨天本來有一小段想傳給你，結果某人先睡著了。', next: 'day3-video' },
   { id: 'day3-video', video: { videoId: 'v1', duration: '0:15' }, next: 'day3-post-choice' },
   {
     id: 'day3-post-choice',
     choice: true,
     options: [
-      { label: '妳是在想我嗎？', reply: '一點點而已啦。你不要太得意😂', next: 'day5-divider' },
-      { label: '剛剛真的在忙啦', reply: '好啦，我知道。但下次可以先跟我說一聲嘛。', next: 'day5-divider' },
-      { label: '這樣我會誤會喔', reply: '那你就先誤會一下啊。我又沒有說不可以。', next: 'day5-divider' },
+      { label: '所以妳昨天真的在等我？', reply: '有啊。\n我還想說你是不是故意讓我想你。', next: 'day5-divider' },
+      { label: '我下次睡著前一定先說', reply: '好，我記住了。\n下次你又突然消失，我真的會生氣喔。', next: 'day5-divider' },
+      { label: '妳這樣我真的會誤會', reply: '那你就誤會啊。\n我又沒有說不可以。', next: 'day5-divider' },
     ],
   },
 
@@ -96,76 +115,82 @@ const NODES = [
     id: 'day5-greet-choice',
     choice: true,
     options: [
-      { label: '早安，妳也是', reply: '早安😊要元氣滿滿地開始新的一天喔。', next: 'day5-r1-ask' },
-      { label: '這麼早就想到我？', reply: '本來就會想到你啊，幹嘛這樣問。', next: 'day5-r1-ask' },
-      { label: '有妳加油，今天應該會很順', reply: '嘴巴這麼甜，等等是不是要拜託我什麼😂', next: 'day5-r1-ask' },
+      { label: '早安，妳也是', reply: '你也是。\n今天第一個跟你說早安的人是我嗎？', next: 'day5-converge' },
+      { label: '這麼早就想到我？', reply: '對啊。\n我現在好像一醒來就會先看你有沒有傳訊息。', next: 'day5-converge' },
+      { label: '有妳加油，今天應該會很順', reply: '那我是不是應該每天都跟你說早安？', next: 'day5-converge' },
     ],
   },
-  { id: 'day5-r1-ask', from: 'emily', text: '記得吃早餐。\n你昨天是不是又很晚睡？', next: 'day5-r1-choice' },
+  { id: 'day5-converge', from: 'emily', text: '昨天沒有再聊到一半消失，表現不錯。', next: 'day5-breakfast-ask' },
+  { id: 'day5-breakfast-ask', from: 'emily', text: '今天有吃早餐嗎？', next: 'day5-breakfast-choice' },
   {
-    id: 'day5-r1-choice',
+    id: 'day5-breakfast-choice',
     choice: true,
     options: [
-      { label: '被妳發現了', reply: '我就知道。今天不可以再這樣了。', next: 'day5-r2-ask' },
-      { label: '我有早點睡', reply: '真的嗎？暫時相信你。', next: 'day5-r2-ask' },
-      { label: '因為昨天在陪妳聊天', reply: '那我是不是還要負責叫你去睡覺？', next: 'day5-r2-ask' },
+      { label: '有，我有乖乖吃', reply: '很乖。\n看來我說的話，你還真的會聽。', next: 'day5-noon-time' },
+      { label: '還沒', reply: '不行，先去吃。\n不然我會一直惦記你到底有沒有吃東西。', next: 'day5-noon-time' },
+      { label: '等妳提醒我', reply: '可以啊。\n那你以後每天早上都要先來找我。', next: 'day5-noon-time' },
     ],
   },
-  { id: 'day5-r2-ask', from: 'emily', text: '吃飯了嗎？', next: 'day5-r2-choice' },
+  { id: 'day5-noon-time', from: 'system', text: '12:24', wait: 500, next: 'day5-lunch-ask' },
+  { id: 'day5-lunch-ask', from: 'emily', text: '吃午餐了嗎？', next: 'day5-lunch-choice' },
   {
-    id: 'day5-r2-choice',
+    id: 'day5-lunch-choice',
     choice: true,
     options: [
-      { label: '正在吃', reply: '很好。吃完再繼續工作。', next: 'day7-divider' },
-      { label: '還沒', reply: '不可以。快去吃飯，吃完再回來。', next: 'day7-divider' },
-      { label: '等妳約我', reply: '你這樣很危險耶。我真的約你怎麼辦？', next: 'day7-divider' },
+      { label: '正在吃', reply: '吃什麼？拍給我看。\n我要檢查你有沒有好好吃飯。', next: 'day7-divider' },
+      { label: '還沒', reply: '你真的很不會照顧自己。\n看來以後要有人管你才行。', next: 'day7-divider' },
+      { label: '等妳約我', reply: '那你最好不要只是嘴上說說。\n我真的約你，你要出現喔。', next: 'day7-divider' },
     ],
   },
 
   { id: 'day7-divider', divider: 'Day 7', next: 'day7-pre' },
-  { id: 'day7-pre', from: 'emily', text: '終於下班了……', next: 'day7-video' },
+  { id: 'day7-pre', from: 'emily', text: '終於下班了……', next: 'day7-pre2' },
+  { id: 'day7-pre2', from: 'emily', text: '剛剛下班前偷錄了一小段給你。', next: 'day7-video' },
   { id: 'day7-video', video: { videoId: 'v2', duration: '0:15' }, next: 'day7-post-choice' },
   {
     id: 'day7-post-choice',
     choice: true,
     options: [
-      { label: '看到妳，我心情也變好了', reply: '你這樣講，我會真的相信喔。', next: 'day7-meet-ask' },
-      { label: '有，我有乖乖吃飯', reply: '這才乖😊下次不用我一直提醒了吧？', next: 'day7-meet-ask' },
-      { label: '妳真的很愛管我耶', reply: '還不是因為你都不會照顧自己。不然我才懶得管你。', next: 'day7-meet-ask' },
+      { label: '看到妳，我心情也變好了', reply: '那我以後是不是要常常讓你看到我？', next: 'day7-meet-ask' },
+      { label: '妳看起來真的很累', reply: '有一點。\n可是看到你回我，好像就沒那麼累了。', next: 'day7-meet-ask' },
+      { label: '下班還特別拍給我喔？', reply: '對啊。\n不然你以為我下班第一個想到的是誰？', next: 'day7-meet-ask' },
     ],
   },
-  { id: 'day7-meet-ask', from: 'emily', text: '如果哪天真的見面，\n你應該不會突然不知道要說什麼吧？', next: 'day7-meet-choice' },
+  { id: 'day7-meet-ask', from: 'emily', text: '我們現在這麼會聊，真的見面的時候，你會不會反而只顧著看我？', next: 'day7-meet-choice' },
   {
     id: 'day7-meet-choice',
     choice: true,
     options: [
-      { label: '不會，我應該會一直看妳', reply: '那我可能會先害羞到不敢看你。', next: 'day10-divider' },
-      { label: '可能會有點緊張', reply: '我應該也會。可是聊一下就好了吧。', next: 'day10-divider' },
-      { label: '那就要看妳敢不敢見我', reply: '你是在激我嗎？我才沒有不敢。', next: 'day10-divider' },
+      { label: '不會，我應該會一直看妳', reply: '那我也要一直看你。\n看看你的眼睛裡有沒有我。', next: 'day10-divider' },
+      { label: '可能會有點緊張', reply: '那我就坐近一點，讓你沒時間緊張。', next: 'day10-divider' },
+      { label: '那就看妳敢不敢見我', reply: '我有什麼不敢。\n我只是怕見了以後，你會更捨不得我。', next: 'day10-divider' },
     ],
   },
 
-  { id: 'day10-divider', divider: 'Day 10', next: 'day10-r1-ask' },
-  { id: 'day10-r1-ask', from: 'emily', text: '我發現現在有什麼事情，\n好像都會想跟你說。', next: 'day10-r1-choice' },
+  { id: 'day10-divider', divider: 'Day 10', next: 'day10-e1' },
+  { id: 'day10-e1', from: 'emily', text: '我今天午餐踩到一家超雷的店。', next: 'day10-e2' },
+  { id: 'day10-e2', from: 'emily', text: '吃第一口的時候，居然第一個想到要跟你抱怨😂', next: 'day10-e3' },
+  { id: 'day10-e3', from: 'emily', text: '我現在好像不管遇到好事還是壞事，第一個都會想跟你說。', next: 'day10-choice1' },
   {
-    id: 'day10-r1-choice',
+    id: 'day10-choice1',
     choice: true,
     options: [
-      { label: '代表我很重要啊', reply: '你自己說的喔。我可沒有承認😂', next: 'day10-r2-ask' },
-      { label: '我也是', reply: '那就好。不然只有我這樣感覺，好像有點笨。', next: 'day10-r2-ask' },
-      { label: '這樣算不算在曖昧？', reply: '你覺得是就是啊。幹嘛問我？', next: 'day10-r2-ask' },
+      { label: '代表我很重要啊', reply: '你現在才發現嗎？', next: 'day10-bedtime-ask' },
+      { label: '所以我是妳的抱怨專線？', reply: '不只抱怨。\n我現在連想你的時候，也會找你。', next: 'day10-bedtime-ask' },
+      { label: '我也是，現在有事也會想跟妳說', reply: '那就好。\n我不想只有我一個人越來越在意。', next: 'day10-bedtime-ask' },
     ],
   },
-  { id: 'day10-r2-ask', from: 'emily', text: '你晚上睡前都會看手機嗎？', next: 'day10-r2-choice' },
+  { id: 'day10-bedtime-ask', from: 'emily', text: '你現在睡前是不是都會先看一下我有沒有傳訊息？', next: 'day10-bedtime-choice' },
   {
-    id: 'day10-r2-choice',
+    id: 'day10-bedtime-choice',
     choice: true,
     options: [
-      { label: '會啊', reply: '那你睡前是不是也會看到我？', next: 'day12-divider' },
-      { label: '看妳有沒有傳訊息', reply: '你這樣講，我今天可能真的會傳喔。', next: 'day12-divider' },
-      { label: '有時候', reply: '那我等一下如果傳，你要記得看。', next: 'day12-divider' },
+      { label: '會啊', reply: '那我是不是已經變成你睡前的習慣了？', next: 'day12-divider' },
+      { label: '看妳有沒有找我', reply: '那我不找你，你是不是就不會主動找我？', next: 'day10-bedtime-followup' },
+      { label: '有時候', reply: '那今晚要記得看。\n我有一個只想給你看的東西。', next: 'day12-divider' },
     ],
   },
+  { id: 'day10-bedtime-followup', from: 'emily', text: '這樣不行，我也想被你主動想起來。', next: 'day12-divider' },
 
   { id: 'day12-divider', divider: 'Day 12', next: 'day12-time' },
   { id: 'day12-time', from: 'system', text: '23:18', wait: 500, next: 'day12-ask' },
@@ -174,19 +199,20 @@ const NODES = [
     id: 'day12-choice',
     choice: true,
     options: [
-      { label: '還沒', reply: '那剛好。', next: 'day12-video' },
-      { label: '正準備睡', reply: '先不要睡，我有東西要給你看。', next: 'day12-video' },
-      { label: '在等妳說晚安', reply: '你是不是知道我會找你？', next: 'day12-video' },
+      { label: '還沒', reply: '那剛好。\n我本來還怕你睡了，看不到我。', next: 'day12-video-lead' },
+      { label: '正準備睡', reply: '先不要睡。\n我有一個只想在你睡前給你看的東西。', next: 'day12-video-lead' },
+      { label: '在等妳說晚安', reply: '你是不是已經知道，我捨不得讓你沒有晚安就睡？', next: 'day12-video-lead' },
     ],
   },
+  { id: 'day12-video-lead', from: 'emily', text: '我剛剛有拍一小段，本來想睡前傳給你的。', next: 'day12-video' },
   { id: 'day12-video', video: { videoId: 'v3', duration: '0:15' }, next: 'day12-post-choice' },
   {
     id: 'day12-post-choice',
     choice: true,
     options: [
-      { label: '晚安，做個好夢', reply: '你也是。明天醒來要記得找我。', next: 'day12-tip' },
-      { label: '我也習慣每天跟妳聊天了', reply: '那我們都不可以突然消失喔。說好了。', next: 'day12-tip' },
-      { label: '妳這樣我真的會喜歡上妳', reply: '那你要對自己的話負責喔。好啦，快睡。', next: 'day12-tip' },
+      { label: '晚安，做個好夢', reply: '你也是。\n明天醒來第一個要想到我。', next: 'day12-tip' },
+      { label: '我也習慣每天跟妳聊天了', reply: '那你不可以突然不習慣我。\n我已經不想重新適應沒有你的晚上了。', next: 'day12-tip' },
+      { label: '妳這樣我真的會喜歡上妳', reply: '你現在才說嗎？\n我還以為你早就有一點喜歡我了。', next: 'day12-tip' },
     ],
   },
   {
@@ -196,87 +222,80 @@ const NODES = [
   },
 
   { id: 'day15-divider', divider: 'Day 15', next: 'day15-ask' },
-  { id: 'day15-ask', from: 'emily', text: '今天工作真的好累喔……', next: 'day15-choice' },
+  { id: 'day15-ask', from: 'emily', text: '今天工作真的好累喔……', next: 'day15-choice1' },
   {
-    id: 'day15-choice',
+    id: 'day15-choice1',
     choice: true,
     options: [
-      {
-        label: '辛苦了',
-        reply: '還好我之前有接觸一點虛擬貨幣，\n最近多了一點額外收入，壓力才沒有那麼大。',
-        next: 'sol-ask',
-      },
-      { label: '妳還有其他收入嗎？', reply: '有啊。\n我最近有接觸一點虛擬貨幣。', next: 'sol-ask' },
-      {
-        label: '要不要休息一下？',
-        reply: '還好我之前有接觸一點虛擬貨幣，\n最近多了一點額外收入，壓力才沒有那麼大。',
-        next: 'sol-ask',
-      },
+      { label: '辛苦了，今天怎麼了？', reply: '公司最近事情很多，事情做不完就算了，還一直被改來改去。', next: 'day15-converge1' },
+      { label: '妳最近是不是都很忙？', reply: '對啊，最近幾乎每天都在加班，薪水又沒有比較多。', next: 'day15-converge1' },
+      { label: '要不要先休息一下？', reply: '等等洗完澡就休息。\n只是最近事情很多，真的有點煩。', next: 'day15-converge1' },
     ],
   },
-  { id: 'sol-ask', from: 'emily', text: '你有聽過 SOL 嗎？', next: 'sol-choice' },
+  { id: 'day15-converge1', from: 'emily', text: '還好我最近有多一點額外收入，不然壓力應該更大。', next: 'day15-choice2' },
+  {
+    id: 'day15-choice2',
+    choice: true,
+    options: [
+      { label: '妳有在做副業嗎？', reply: '不算副業啦，是朋友之前帶我接觸一點虛擬貨幣。', next: 'day15-converge2' },
+      { label: '什麼額外收入？', reply: '我最近有跟著朋友看一點虛擬貨幣，偶爾會有一些收益。', next: 'day15-converge2' },
+      { label: '難怪妳看起來沒有很擔心', reply: '還是會擔心啊，只是最近剛好多一點收入，心裡比較沒那麼慌。', next: 'day15-converge2' },
+    ],
+  },
+  { id: 'day15-converge2', from: 'emily', text: '我主要是跟 SOL，你有聽過嗎？', next: 'sol-choice' },
+
   {
     id: 'sol-choice',
     choice: true,
     options: [
-      { label: '有聽過，但不太懂', reply: '我一開始也不懂。\n其實我現在也沒有很會看那些圖😂', next: 'team-ask' },
-      { label: '完全沒聽過', reply: '就是一種虛擬貨幣啦。\n我之前也是別人跟我說才知道。', next: 'team-ask' },
-      { label: '虛擬貨幣不是風險很高嗎？', reply: '自己亂買當然風險很高啊。\n所以我不是自己亂操作。', next: 'team-ask' },
+      { label: '有聽過，但不太懂', reply: '我一開始也完全不懂，現在其實也只是跟著看。', next: 'sol-converge' },
+      { label: '完全沒聽過', reply: '就是一種虛擬貨幣，跟比特幣不太一樣。\n我也是別人跟我說才知道。', next: 'sol-converge' },
+      { label: '虛擬貨幣不是風險很高嗎？', reply: '風險確實不低，所以我一開始也只敢放一點點。', next: 'sol-converge' },
     ],
   },
-  { id: 'team-ask', from: 'emily', text: '我是跟著一個分析團隊的訊號，\n他們會告訴我什麼時候進、什麼時候出。', next: 'team-choice' },
+  { id: 'sol-converge', from: 'emily', text: '是朋友帶我進一個分析群，他們會整理進出場的時間。', next: 'team-choice' },
   {
     id: 'team-choice',
     choice: true,
     options: [
-      { label: '真的有那麼容易？', reply: '也不是每次都很多啦。\n但至少最近幾次都有賺。', next: 'shot-msg' },
-      { label: '妳賺很多嗎？', reply: '沒有到很多啦～\n只是比放在銀行好一點。', next: 'shot-msg' },
-      {
-        label: '聽起來怪怪的',
-        reply: '我一開始也覺得怪。\n所以我第一次只放很少，看到真的可以操作才慢慢比較放心。',
-        next: 'shot-msg',
-      },
+      { label: '真的有那麼容易？', reply: '也不能說很容易啦，只是我目前跟的幾次剛好都有小賺。', next: 'shot-lead1' },
+      { label: '妳賺很多嗎？', reply: '沒有很多，幾百美金而已，我也不敢一次放太多。', next: 'shot-lead1' },
+      { label: '聽起來怪怪的', reply: '我一開始也覺得怪，所以第一次只放很少，後來有提領出來才比較放心。', next: 'shot-lead1' },
     ],
   },
+
+  { id: 'shot-lead1', from: 'emily', text: '我找一下。', wait: 1400, next: 'shot-lead2' },
+  { id: 'shot-lead2', from: 'emily', text: '我之前有截一張。', next: 'shot-image' },
   {
-    id: 'shot-msg',
-    custom: { kind: 'shot', brand: 'NOVA QUANT', rows: [
-      ['本日收益', '+368 USDT'],
-      ['總資產', '4,862 USDT'],
-      ['SOL 智能策略', '+8.36%'],
-    ] },
-    wait: 1200,
-    next: 'shot-tip',
-  },
-  {
-    id: 'shot-tip',
-    tip: {
-      text: '收益截圖可能經過偽造或修改，無法證明平台真實存在或可以正常出金。',
-      detail: ['修改過的收益截圖', '假帳戶餘額', '可自由控制的後台數字', '假造的交易紀錄'],
+    id: 'shot-image',
+    image: {
+      brand: 'NOVA QUANT',
+      rows: [
+        ['本日收益', '+368 USDT'],
+        ['總資產', '4,862 USDT'],
+        ['SOL 智能策略', '+8.36%'],
+      ],
     },
-    next: 'link-msg1',
+    next: 'shot-after1',
   },
-  { id: 'link-msg1', from: 'emily', text: '你不用急著放錢啦。\n你可以先進去看看介面，不懂再問我。', next: 'link-card-node' },
+  { id: 'shot-after1', from: 'emily', text: '我就是看到這樣才慢慢相信。', next: 'shot-after2' },
+  { id: 'shot-after2', from: 'emily', text: '不過你不用急著碰啦，我只是剛好聊到才跟你說。', next: 'link-lead1' },
+
+  { id: 'link-lead1', from: 'emily', text: '你有興趣的話，可以先看一下介面。', next: 'link-lead2' },
+  { id: 'link-lead2', from: 'emily', text: '我把網址貼給你。', next: 'link-card-node' },
   {
     id: 'link-card-node',
-    custom: { kind: 'link', brand: 'NOVA QUANT', subtitle: 'AI Digital Asset Strategy', url: 'nova-quant.digital' },
-    wait: 1200,
-    next: 'link-choice',
+    link: { brand: 'NOVA QUANT', subtitle: 'AI Digital Asset Strategy', url: 'nova-quant.digital' },
+    next: 'link-return-ask',
   },
+  { id: 'link-return-ask', from: 'emily', text: '有看到嗎？', next: 'link-return-choice' },
   {
-    id: 'link-choice',
+    id: 'link-return-choice',
     choice: true,
     options: [
-      {
-        label: '這樣安全嗎？',
-        reply: '我朋友已經用了滿久的，而且我自己也有在裡面操作。\n你先看看就好，又不用馬上放錢。',
-        next: 'link-tip',
-      },
-      {
-        label: '我再想想',
-        reply: '沒關係啊～我又沒有叫你一定要用，\n只是覺得有機會可以一起研究而已。',
-        next: 'end-chat',
-      },
+      { label: '這是哪家公司？', reply: '我朋友說是他們分析團隊合作的平台，我自己也是用這個。', next: 'link-tip' },
+      { label: '這樣安全嗎？', reply: '我朋友已經用了滿久，我自己也有提領過。\n你先看看就好，不用馬上放錢。', next: 'link-tip' },
+      { label: '我先看看介面', reply: '好啊，你不懂再截圖問我。', next: 'link-tip' },
     ],
   },
   {
@@ -289,9 +308,65 @@ const NODES = [
 
 function VideoThumb({ item, onOpen }) {
   return (
-    <button type="button" className="line-video-thumb" onClick={onOpen} aria-label="重新播放影片">
+    <button type="button" className="line-video-thumb" onClick={onOpen} aria-label="播放影片">
       <span className="line-video-thumb-play"><Play size={20} fill="currentColor" /></span>
       <span className="line-video-thumb-duration">{item.duration}</span>
+    </button>
+  );
+}
+
+// The profit-screenshot "photo" Emily sends - a compact preview card (same
+// brand/rows data the old inline card showed) with a tap-to-enlarge
+// affordance, rather than the numbers just sitting fully expanded in the
+// chat flow already.
+function ImageThumb({ item, onOpen }) {
+  return (
+    <button type="button" className="line-image-thumb" onClick={onOpen} aria-label="查看圖片">
+      <div className="shot-brand">{item.brand}</div>
+      {item.rows.slice(0, 2).map(([label, value], r) => (
+        <div key={r} className="shot-row"><span>{label}</span><strong>{value}</strong></div>
+      ))}
+      <span className="line-image-thumb-zoom"><ZoomIn size={16} /></span>
+    </button>
+  );
+}
+
+function ImageLightbox({ item, onClose }) {
+  return (
+    <div className="line-image-lightbox" onClick={onClose}>
+      <div className="line-image-lightbox-card" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="line-image-lightbox-close" onClick={onClose} aria-label="關閉">
+          <X size={20} />
+        </button>
+        <div className="shot-brand">{item.brand}</div>
+        {item.rows.map(([label, value], r) => (
+          <div key={r} className="shot-row"><span>{label}</span><strong>{value}</strong></div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Only ever one link node in the script, so "still pending" is enough to
+// tell the active card apart from an already-resolved one - a resolved card
+// stays visible as part of the chat history but stops being clickable,
+// since tapping it again would mean re-navigating away with nothing sensible
+// to resume into.
+function LinkCard({ item, active, onOpen }) {
+  const content = (
+    <>
+      <div className="link-brand">{item.brand}</div>
+      <div>{item.subtitle}</div>
+      <div className="link-url">{item.url}</div>
+      {active && <span className="link-card-icon"><ExternalLink size={16} /></span>}
+    </>
+  );
+  if (!active) {
+    return <div className="link-card">{content}</div>;
+  }
+  return (
+    <button type="button" className="link-card link-card-clickable" onClick={onOpen}>
+      {content}
     </button>
   );
 }
@@ -472,6 +547,24 @@ export function PrivateChat() {
   useSaveScenario02Progress('/scenario02-romance/private-chat');
   useStageClassName('tanu-stage');
   const navigate = useNavigate();
+
+  // Consumed once, synchronously, on first mount - if the player just came
+  // back from the investment platform (via the link card below), this
+  // restores the chat exactly where they left it instead of restarting the
+  // whole scripted conversation from 'join-sys'.
+  const [checkpoint] = useState(() => takePrivateChatCheckpoint());
+  const dialogueOptions = useMemo(
+    () =>
+      checkpoint
+        ? {
+            initialTimeline: checkpoint.timeline,
+            resumeId: checkpoint.resumeId,
+            initialWatchedVideoIds: checkpoint.watchedVideoIds,
+          }
+        : undefined,
+    [checkpoint],
+  );
+
   const {
     timeline,
     isTyping,
@@ -479,13 +572,15 @@ export function PrivateChat() {
     choose,
     pendingVideo,
     completeVideo,
+    completeImage,
+    pendingLink,
     pendingTip,
     completeTip,
     watchedVideoIds,
-    done,
-  } = useDialogueTree(NODES, 'join-sys');
+  } = useDialogueTree(NODES, 'join-sys', dialogueOptions);
   const [openVideoId, setOpenVideoId] = useState(null);
   const [replayVideoId, setReplayVideoId] = useState(null);
+  const [lightboxItem, setLightboxItem] = useState(null);
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -493,15 +588,6 @@ export function PrivateChat() {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [timeline, isTyping, pendingChoice, pendingTip]);
-
-  // Video nodes auto-open full-screen the moment they're reached - no click
-  // required. Re-watching an already-watched thumbnail (replayVideoId) does
-  // not touch story progress.
-  useEffect(() => {
-    if (pendingVideo && !watchedVideoIds.has(pendingVideo.videoId)) {
-      setOpenVideoId(pendingVideo.videoId);
-    }
-  }, [pendingVideo, watchedVideoIds]);
 
   // Not just the src string - the overlay needs the id itself (VIDEO_SRC key)
   // for its `key` prop, so switching between v1/v2/v3 always mounts a fresh
@@ -526,6 +612,18 @@ export function PrivateChat() {
     } else if (replayVideoId) {
       setReplayVideoId(null);
     }
+  }
+
+  function closeImage() {
+    setLightboxItem(null);
+    completeImage();
+  }
+
+  function openLink() {
+    if (pendingLink) {
+      savePrivateChatCheckpoint(timeline, pendingLink.next, watchedVideoIds);
+    }
+    navigate('/scenario02-romance/platform-register');
   }
 
   return (
@@ -553,31 +651,35 @@ export function PrivateChat() {
             const watched = watchedVideoIds.has(item.videoId);
             return (
               <div key={i} className="line-msg-row them">
-                <VideoThumb item={item} onOpen={() => watched && setReplayVideoId(item.videoId)} />
+                <VideoThumb
+                  item={item}
+                  onOpen={() => {
+                    if (watched) {
+                      setReplayVideoId(item.videoId);
+                    } else if (pendingVideo?.videoId === item.videoId) {
+                      setOpenVideoId(item.videoId);
+                    }
+                  }}
+                />
               </div>
             );
           }
-          if (item.kind === 'tip') {
-            return <TipItem key={i} item={item} active={pendingTip?.key === item.key} onAck={completeTip} />;
-          }
-          if (item.kind === 'shot') {
+          if (item.kind === 'image') {
             return (
-              <div key={i} className="shot-card">
-                <div className="shot-brand">{item.brand}</div>
-                {item.rows.map(([label, value], r) => (
-                  <div key={r} className="shot-row"><span>{label}</span><strong>{value}</strong></div>
-                ))}
+              <div key={i} className="line-msg-row them">
+                <ImageThumb item={item} onOpen={() => setLightboxItem(item)} />
               </div>
             );
           }
           if (item.kind === 'link') {
             return (
-              <div key={i} className="link-card">
-                <div className="link-brand">{item.brand}</div>
-                <div>{item.subtitle}</div>
-                <div className="link-url">{item.url}</div>
+              <div key={i} className="line-msg-row them">
+                <LinkCard item={item} active={Boolean(pendingLink)} onOpen={openLink} />
               </div>
             );
+          }
+          if (item.kind === 'tip') {
+            return <TipItem key={i} item={item} active={pendingTip?.key === item.key} onAck={completeTip} />;
           }
           if (item.from === 'system') {
             return <div key={i} className="line-date-divider"><span>{item.text}</span></div>;
@@ -593,16 +695,12 @@ export function PrivateChat() {
       </div>
       <footer className="line-chat-footer">
         {pendingChoice && <SuggestedReplies options={pendingChoice.options} onChoose={choose} />}
-        {done && (
-          <button type="button" className="tanu-primary-btn" onClick={() => navigate('/scenario02-romance/platform-register')}>
-            前往平台看看
-          </button>
-        )}
       </footer>
 
       {activeSrc && (
         <VideoOverlay key={activeVideoId} videoId={activeVideoId} src={activeSrc} onFinished={handleVideoFinished} />
       )}
+      {lightboxItem && <ImageLightbox item={lightboxItem} onClose={closeImage} />}
     </div>
   );
 }

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { TopBar } from '../../shell/TopBar';
 import { Platform, Stat } from '../../components/ui/Platform';
 import { Button } from '../../components/ui/Button';
-import { Chat, Message } from '../../components/ui/Chat';
 import { useSaveScenario02Progress } from '../../lib/scenario02Store';
 
 const TABS = ['首頁', '市場', '策略', '資產', '我的'];
@@ -19,8 +18,6 @@ export function PlatformHome() {
   useSaveScenario02Progress('/scenario02-romance/platform-home');
   const navigate = useNavigate();
   const [tab, setTab] = useState('首頁');
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [notified, setNotified] = useState(true);
 
   return (
     <>
@@ -81,37 +78,13 @@ export function PlatformHome() {
         </div>
       </Platform>
 
-      {notified && (
-        <button
-          type="button"
-          className="btn platform-drawer-toggle"
-          onClick={() => {
-            setDrawerOpen(true);
-            setNotified(false);
-          }}
-        >
-          💬 Emily：看到了嗎？
-        </button>
-      )}
-      {!notified && (
-        <button type="button" className="btn secondary platform-drawer-toggle" onClick={() => setDrawerOpen(true)}>
-          💬 Emily
-        </button>
-      )}
-
-      <div className={`chat-drawer${drawerOpen ? ' open' : ''}`}>
-        <div className="chat-drawer-panel">
-          <div className="chat-drawer-header">
-            <span>Emily</span>
-            <button type="button" onClick={() => setDrawerOpen(false)} aria-label="關閉">✕</button>
-          </div>
-          <Chat variant="line-chat">
-            <Message>你先不用放很多。</Message>
-            <Message>我第一次也只是先試一點點。</Message>
-            <Message>你可以先用 10,000 元左右試看看，真的覺得不適合就不要繼續。</Message>
-          </Chat>
-        </div>
-      </div>
+      <button
+        type="button"
+        className="btn secondary platform-drawer-toggle"
+        onClick={() => navigate('/scenario02-romance/private-chat')}
+      >
+        返回 LINE
+      </button>
     </>
   );
 }
