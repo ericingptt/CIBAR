@@ -45,33 +45,18 @@ const NODES = [
       { label: '可能是我們頻率比較像', reply: '哈哈，我也覺得。\n跟有些人就是不用想太多，很自然就聊下去了。', next: 't-ask' },
     ],
   },
-  { id: 't-ask', from: 'emily', text: '這邊有時候訊息會漏掉。\n你平常有用 LINE 嗎？', next: 't-choice' },
+  { id: 't-ask', from: 'emily', text: '要不要加個 LINE？', next: 't-ask-2' },
+  { id: 't-ask-2', from: 'emily', text: '這邊有時候通知不太會跳，我怕漏掉你的訊息。', next: 't-choice' },
   {
     id: 't-choice',
     choice: true,
     options: [
-      { label: '有啊', reply: '那要不要加一下？\n這樣比較不會漏掉你的訊息。', next: 'join-prompt' },
-      { label: '為什麼要換？', reply: '因為這邊通知常常不跳出來啦😂\n而且 LINE 比較方便。不方便也沒關係喔。', next: 't-b-choice' },
-      { label: '在這裡聊就好吧', reply: '好啊，也可以。\n我只是怕錯過你的訊息而已。', next: 't-filler-a' },
-    ],
-  },
-  { id: 't-b-choice', choice: true, options: [
-    { label: '加入 LINE', reply: null, next: 'join-prompt' },
-    { label: '先繼續聊', reply: null, next: 't-filler-a' },
-  ] },
-  { id: 't-filler-a', from: 'emily', text: '對了，你平常假日都習慣做什麼？', next: 't-filler-b' },
-  { id: 't-filler-b', from: 'emily', text: '感覺你應該很好相處，\n我剛搬來這邊，認識的人還沒有很多。', next: 't-5s-remind' },
-  { id: 't-5s-remind', from: 'emily', text: '可是我等等要關掉這個 App 了🥺', wait: 900, next: 't-5s-choice' },
-  {
-    id: 't-5s-choice',
-    choice: true,
-    options: [
-      { label: '加入 LINE', reply: null, next: 'join-prompt' },
-      { label: '結束體驗', reply: null, next: 'end-declined' },
+      { label: '好啊，可以加', reply: null, next: 'join-prompt' },
+      { label: '這裡聊不方便嗎？', reply: null, next: 'join-prompt' },
+      { label: '我比較習慣在這裡聊', reply: null, next: 'join-prompt' },
     ],
   },
   { id: 'join-prompt', end: true, reason: 'join' },
-  { id: 'end-declined', end: true, reason: 'declined' },
 ];
 
 // Only the last message in a run of consecutive same-sender bubbles shows a
@@ -163,13 +148,6 @@ export function DatingChat() {
         {pendingChoice && <SuggestedReplies options={pendingChoice.options} onChoose={choose} />}
         {done && endReason === 'join' && joinPhase === 'idle' && (
           <button type="button" className="tanu-primary-btn" onClick={joinLine}>加入 Emily 的 LINE</button>
-        )}
-        {done && endReason === 'declined' && joinPhase === 'idle' && (
-          <div className="tanu-declined-box">
-            <p>你選擇中止與陌生人的聯絡。但實際案例中，許多人會因為對方表現自然、沒有立刻談錢，而選擇繼續聯絡。</p>
-            <button type="button" className="tanu-secondary-btn" onClick={() => navigate('/scanner')}>返回首頁</button>
-            <button type="button" className="tanu-primary-btn" onClick={joinLine}>繼續模擬</button>
-          </div>
         )}
         {joinPhase === 'tip' && (
           <SafetyAlert

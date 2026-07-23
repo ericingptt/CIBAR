@@ -72,6 +72,36 @@ export function getEmilyDecision() {
   }
 }
 
+// Snapshot of PrivateChat's dialogue right before the player taps the
+// investment-link card and leaves for the platform pages - React state alone
+// wouldn't survive that unmount, so the chat history and where to resume have
+// to be persisted for the round trip back. Cleared once PrivateChat consumes
+// it on the way back in, so a later, unrelated visit doesn't restore stale
+// history.
+const CHECKPOINT_KEY = 'cibar-scenario02-privatechat-checkpoint';
+
+export function savePrivateChatCheckpoint(timeline, resumeId, watchedVideoIds) {
+  try {
+    sessionStorage.setItem(
+      CHECKPOINT_KEY,
+      JSON.stringify({ timeline, resumeId, watchedVideoIds: [...watchedVideoIds] }),
+    );
+  } catch {
+    // ignore
+  }
+}
+
+export function takePrivateChatCheckpoint() {
+  try {
+    const raw = sessionStorage.getItem(CHECKPOINT_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(CHECKPOINT_KEY);
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 // Every persisted scenario02 key shares this prefix (KEY/RESOLVED_KEY/
 // EMILY_DECISION_KEY above), so sweeping by prefix - rather than naming each
 // key here individually - also catches anything added later without this
