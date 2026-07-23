@@ -5,6 +5,7 @@ import { useDialogueTree } from '../../lib/dialogueTree';
 import { useSaveScenario02Progress } from '../../lib/scenario02Store';
 import { useStageClassName } from '../../shell/StageClassContext';
 import { ProfileAvatar } from './components/ProfileAvatar';
+import { SafetyAlert } from './components/SafetyAlert';
 import { SuggestedReplies } from './tanu/SuggestedReplies';
 
 const VIDEO_BASE = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/videos/`;
@@ -298,71 +299,170 @@ function VideoThumb({ item, onOpen }) {
 function TipItem({ item, active, onAck }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div className="tip-inline">
-      ⚠ AI 提醒：{item.text}
-      {item.detail && (
-        <>
-          <button type="button" className="tip-toggle" onClick={() => setExpanded((v) => !v)}>
-            {expanded ? '收起' : '查看原因'}
-          </button>
-          {expanded && (
-            <ul className="quiz-explain" style={{ margin: '8px 0 0', paddingLeft: 18 }}>
-              {item.detail.map((d, i) => (
-                <li key={i}>{d}</li>
-              ))}
-            </ul>
-          )}
-        </>
-      )}
-      {active ? (
-        <div className="btns">
-          <button type="button" className="btn secondary" onClick={onAck}>知道了</button>
-        </div>
-      ) : (
-        <p className="mini" style={{ marginTop: 8 }}>已知悉</p>
-      )}
-    </div>
+    <SafetyAlert
+      text={item.text}
+      detail={item.detail}
+      expanded={expanded}
+      onToggleDetail={() => setExpanded((v) => !v)}
+      acknowledged={!active}
+      onAcknowledge={onAck}
+    />
   );
 }
 
-// Fullscreen autoplay video overlay - no controls, no captions, no "看完了"
-// button. Tries to play with sound; only if the browser actually blocks
-// autoplay does it fall back to a tap-to-play screen (not the normal path).
-function VideoOverlay({ src, onEnded }) {
+const VIDEO_STATE = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  PLAYING: 'playing',
+  BLOCKED: 'blocked',
+  ERROR: 'error',
+  ENDED: 'ended',
+};
+
+// How long to wait for loadeddata/canplay/playing/error before assuming the
+// load itself is stuck (bad network, unreachable asset, browser quirk) and
+// surfacing an explicit "load failed, skip or retry" screen instead of
+// leaving the player - and the whole educational flow behind it - stuck on
+// a plain black rectangle forever.
+const VIDEO_LOAD_TIMEOUT = 8000;
+
+// Fullscreen video overlay with an explicit state machine instead of a bare
+// `<video autoPlay>`: autoplay-with-sound can be silently blocked by the
+// browser, or the asset can simply still be loading, and either of those
+// looks identical to the player (full black box) unless we track which one
+// it is and show the right recovery UI. No controls, no captions, no "看完了"
+// button - completion is always driven by onEnded/the skip button.
+function VideoOverlay({ videoId, src, onFinished }) {
   const videoRef = useRef(null);
-  const [blocked, setBlocked] = useState(false);
+  const playAttemptedRef = useRef(false);
+  const finishedRef = useRef(false);
+  const loadTimeoutRef = useRef(null);
+  const [videoState, setVideoState] = useState(VIDEO_STATE.LOADING);
+  const [videoErrorMessage, setVideoErrorMessage] = useState('');
 
+  function clearLoadTimeout() {
+    clearTimeout(loadTimeoutRef.current);
+  }
+
+  function armLoadTimeout() {
+    clearLoadTimeout();
+    loadTimeoutRef.current = setTimeout(() => {
+      console.error('[Scenario02 Video Error]', { videoId, src, reason: 'load-timeout' });
+      setVideoErrorMessage('影片載入逾時');
+      setVideoState(VIDEO_STATE.ERROR);
+    }, VIDEO_LOAD_TIMEOUT);
+  }
+
+  // Every new video (v1 -> v2 -> v3, or a replay) starts this component
+  // fresh via `key={videoId}` at the call site, but the state reset also
+  // lives here so switching src on an already-mounted instance can't leave
+  // a stale error/ended state behind either.
   useEffect(() => {
-    setBlocked(false);
-    const playPromise = videoRef.current?.play();
-    if (playPromise?.catch) {
-      playPromise.catch(() => setBlocked(true));
-    }
-  }, [src]);
+    playAttemptedRef.current = false;
+    finishedRef.current = false;
+    setVideoErrorMessage('');
+    setVideoState(VIDEO_STATE.LOADING);
+    armLoadTimeout();
+    return clearLoadTimeout;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoId, src]);
 
-  function retryPlay() {
-    videoRef.current?.play().then(() => setBlocked(false)).catch(() => setBlocked(true));
+  function finishVideo() {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    clearLoadTimeout();
+    setVideoState(VIDEO_STATE.ENDED);
+    requestAnimationFrame(() => {
+      onFinished();
+    });
+  }
+
+  async function tryPlayVideo() {
+    if (playAttemptedRef.current) return;
+    playAttemptedRef.current = true;
+    const video = videoRef.current;
+    if (!video) return;
+    try {
+      video.currentTime = 0;
+      await video.play();
+      clearLoadTimeout();
+      setVideoState(VIDEO_STATE.PLAYING);
+      console.info('[Scenario02 Video]', { videoId, state: 'playing', src });
+    } catch (error) {
+      console.error('[Scenario02 Video Error]', error);
+      setVideoState(VIDEO_STATE.BLOCKED);
+    }
+  }
+
+  function handleManualPlay() {
+    videoRef.current
+      ?.play()
+      .then(() => {
+        clearLoadTimeout();
+        setVideoState(VIDEO_STATE.PLAYING);
+      })
+      .catch((error) => console.error('[Scenario02 Video Error]', error));
+  }
+
+  function handleVideoError(event) {
+    const mediaError = event.currentTarget.error;
+    console.error('[Scenario02 Video Error]', {
+      videoId,
+      src,
+      code: mediaError?.code,
+      message: mediaError?.message,
+    });
+    clearLoadTimeout();
+    setVideoErrorMessage(mediaError?.message || '影片無法載入');
+    setVideoState(VIDEO_STATE.ERROR);
+  }
+
+  function retryVideo() {
+    playAttemptedRef.current = false;
+    setVideoErrorMessage('');
+    setVideoState(VIDEO_STATE.LOADING);
+    armLoadTimeout();
+    videoRef.current?.load();
   }
 
   return (
     <div className="line-video-overlay" onContextMenu={(e) => e.preventDefault()}>
       <video
         ref={videoRef}
+        key={videoId}
         className="line-video-overlay-el"
         src={src}
+        autoPlay
         playsInline
         preload="auto"
         controls={false}
         disablePictureInPicture
         controlsList="nodownload noplaybackrate nofullscreen"
-        onEnded={onEnded}
-        onError={onEnded}
+        onLoadedData={tryPlayVideo}
+        onCanPlay={tryPlayVideo}
+        onPlaying={() => setVideoState(VIDEO_STATE.PLAYING)}
+        onEnded={finishVideo}
+        onError={handleVideoError}
+        onContextMenu={(e) => e.preventDefault()}
       />
-      {blocked && (
-        <button type="button" className="line-video-tap-fallback" onClick={retryPlay}>
-          <Play size={56} fill="currentColor" />
+      {videoState === VIDEO_STATE.LOADING && (
+        <div className="line-video-loading">
+          <span className="line-video-spinner" />
+          <span>影片載入中…</span>
+        </div>
+      )}
+      {videoState === VIDEO_STATE.BLOCKED && (
+        <button type="button" className="line-video-tap-fallback" onClick={handleManualPlay}>
+          <span className="line-video-play-btn"><Play size={32} fill="currentColor" /></span>
           <span>點一下播放 Emily 傳來的影片</span>
         </button>
+      )}
+      {videoState === VIDEO_STATE.ERROR && (
+        <div className="line-video-error">
+          <p title={videoErrorMessage || undefined}>影片載入失敗</p>
+          <button type="button" className="line-video-error-btn" onClick={retryVideo}>重新播放</button>
+          <button type="button" className="line-video-error-btn secondary" onClick={finishVideo}>略過影片並繼續</button>
+        </div>
       )}
     </div>
   );
@@ -403,12 +503,17 @@ export function PrivateChat() {
     }
   }, [pendingVideo, watchedVideoIds]);
 
+  // Not just the src string - the overlay needs the id itself (VIDEO_SRC key)
+  // for its `key` prop, so switching between v1/v2/v3 always mounts a fresh
+  // <video> instead of a browser potentially carrying over the previous
+  // one's error/ended state onto the next src.
+  const activeVideoId = openVideoId ?? replayVideoId ?? null;
   const activeSrc = useMemo(() => {
     const id = openVideoId ?? replayVideoId;
-    return id ? VIDEO_SRC[id] : null;
+    return id && VIDEO_SRC[id] ? VIDEO_SRC[id] : null;
   }, [openVideoId, replayVideoId]);
 
-  function handleVideoEnded() {
+  function handleVideoFinished() {
     if (openVideoId) {
       setOpenVideoId(null);
       completeVideo();
@@ -495,7 +600,9 @@ export function PrivateChat() {
         )}
       </footer>
 
-      {activeSrc && <VideoOverlay src={activeSrc} onEnded={handleVideoEnded} />}
+      {activeSrc && (
+        <VideoOverlay key={activeVideoId} videoId={activeVideoId} src={activeSrc} onFinished={handleVideoFinished} />
+      )}
     </div>
   );
 }
