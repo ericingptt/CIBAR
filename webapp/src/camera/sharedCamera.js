@@ -16,10 +16,53 @@ export function getCurrentCameraInfo() {
   return { label: currentSession.device.label, deviceId: currentSession.device.deviceId };
 }
 
+// If public/camera-bridge.js has detected we're running inside the native
+// Jorjin WebView shell (window.AndroidCamera present), getUserMedia() is
+// never going to work there - the shell was built to push frames in via
+// window.onNativeCameraFrame instead, not to grant camera permission to the
+// page. In that case, wait for the bridge's canvas-backed <video> element
+// instead of ever attempting getUserMedia(); a timeout guards against
+// hanging forever if the shell announces itself but frames never actually
+// arrive. Returns null immediately (not a promise) when there's no native
+// shell, so normal browsers fall straight through to the getUserMedia() path
+// below completely unaffected.
+function getBridgeCameraSession() {
+  const bridge = window.__cibarCameraBridge;
+  if (!bridge || !bridge.isNativeShell) return null;
+
+  return (async () => {
+    const videoEl = await Promise.race([
+      bridge.getVideoElement(),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('等待原生鏡頭橋接影格逾時（8 秒內未收到任何影格）')), 8000);
+      }),
+    ]);
+    if (!videoEl.videoWidth) {
+      await new Promise((resolve) => videoEl.addEventListener('loadedmetadata', resolve, { once: true }));
+    }
+    // Same critical fix as the getUserMedia path below - MindAR reads the
+    // plain width/height attributes, not videoWidth/videoHeight.
+    videoEl.width = videoEl.videoWidth;
+    videoEl.height = videoEl.videoHeight;
+    return {
+      stream: videoEl.srcObject,
+      videoEl,
+      device: { label: '佐臻原生相機橋接（camera-bridge.js）', deviceId: 'jorjin-native-bridge' },
+      devices: [],
+    };
+  })();
+}
+
 export function getSharedCamera() {
   if (sessionPromise) return sessionPromise;
 
   sessionPromise = (async () => {
+    const bridgeSession = getBridgeCameraSession();
+    if (bridgeSession) {
+      currentSession = await bridgeSession;
+      return currentSession;
+    }
+
     const devices = await listVideoInputDevices();
     if (devices.length === 0) {
       throw new Error('找不到任何攝影機裝置（enumerateDevices 回傳 0 個 videoinput）');

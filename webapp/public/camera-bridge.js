@@ -52,10 +52,34 @@
   }
   var decoding = false;
   var img = new Image();
+  var resolveBridgeVideo;
+  var bridgeVideoPromise = new Promise(function (resolve) { resolveBridgeVideo = resolve; });
+  var bridgeVideoCreated = false;
+
+  // Wraps the canvas back into a real <video> element via captureStream(),
+  // once the canvas actually has real pixel dimensions (i.e. at least one
+  // native frame has been decoded onto it) - so MindAR/MediaPipe, which both
+  // expect a live <video>-like source, can use the bridged frames exactly
+  // like a normal camera stream (advancing currentTime/readyState etc.),
+  // with zero code of their own aware that the source is a canvas underneath.
+  function maybeCreateBridgeVideo() {
+    if (bridgeVideoCreated || !canvas.width || !canvas.height) return;
+    bridgeVideoCreated = true;
+    var stream = canvas.captureStream(15); // matches the native side's ~15fps push rate
+    var videoEl = document.createElement('video');
+    videoEl.autoplay = true;
+    videoEl.muted = true;
+    videoEl.playsInline = true;
+    videoEl.srcObject = stream;
+    videoEl.play().catch(function () {});
+    resolveBridgeVideo(videoEl);
+  }
+
   img.onload = function () {
     if (canvas.width !== img.width) canvas.width = img.width;
     if (canvas.height !== img.height) canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
+    maybeCreateBridgeVideo();
     var latencyMs = Date.now() - img._captureTs;
     var jsFps = tickJsFps();
     document.dispatchEvent(new CustomEvent('cibar:frame', {
@@ -94,4 +118,19 @@
     overlay.textContent = 'web ' + ev.detail.jsFps.toFixed(1) + ' fps | e2e ' +
         ev.detail.latencyMs + ' ms | ' + ev.detail.width + 'x' + ev.detail.height;
   });
+
+  // Consumed by webapp/src/camera/sharedCamera.js: `isNativeShell` is true
+  // synchronously (as soon as this script runs), before any frame has
+  // necessarily arrived yet - that's what lets sharedCamera.js decide to
+  // wait for bridged frames INSTEAD of calling getUserMedia() at all, rather
+  // than only finding out after a real camera-permission failure. Native
+  // shells are expected to register `window.AndroidCamera` (e.g. via
+  // WebView.addJavascriptInterface) before the page's own JS runs; in a
+  // normal browser neither this nor `onNativeCameraFrame` ever fires, so
+  // `getVideoElement()` simply never resolves and sharedCamera.js's
+  // getUserMedia() fallback path is used exactly as before.
+  window.__cibarCameraBridge = {
+    isNativeShell: !!window.AndroidCamera,
+    getVideoElement: function () { return bridgeVideoPromise; },
+  };
 })();
