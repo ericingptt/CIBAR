@@ -2,6 +2,7 @@ import { TopBar } from '../../shell/TopBar';
 import { Platform, Stat } from '../../components/ui/Platform';
 import { Button } from '../../components/ui/Button';
 import { useMoneyCounter } from '../../lib/profitAnimation';
+import { useStageClassName } from '../../shell/StageClassContext';
 
 const CANDLES = [
   { i: 0, down: false, line: [24, 108, 24, 95], rect: [18, 99, 12, 7] },
@@ -18,7 +19,12 @@ const CANDLES = [
 
 const TREND_POINTS = '22,102 58,91 94,98 130,73 166,81 202,55 238,63 274,39 310,45 342,22';
 
+// The one page in the whole site that's deliberately allowed to scroll as a
+// normal page: the scenario casts it as "the investor is browsing their
+// platform's asset-overview screen", so a scrolling feel is more true to
+// life than forcing it into a single fixed 9:16 frame like everything else.
 export function Profit() {
+  useStageClassName('scroll-stage');
   const { money, withdrawVisible } = useMoneyCounter();
 
   return (
