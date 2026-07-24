@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { ENABLE_GESTURE_TUTORIAL } from './config/features';
 import { AppShell } from './shell/AppShell';
 import { RequireLanguage } from './lib/RequireLanguage';
+import { CameraSourceSelect } from './pages/CameraSourceSelect';
 import { GestureIntro } from './pages/GestureIntro';
 import { LanguageSelect } from './pages/LanguageSelect';
 import { Scanner } from './pages/Scanner';
@@ -48,6 +49,7 @@ export const routes = [
         element: ENABLE_GESTURE_TUTORIAL ? <GestureIntro /> : <Navigate to="/language" replace />,
       },
       { path: 'language', element: <LanguageSelect /> },
+      { path: 'camera-source', element: <RequireLanguage><CameraSourceSelect /></RequireLanguage> },
       { path: 'scanner', element: <RequireLanguage><Scanner /></RequireLanguage> },
 
       { path: 'scenario01-investment', element: <Briefing /> },

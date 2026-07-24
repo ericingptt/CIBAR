@@ -1,4 +1,5 @@
 import { listVideoInputDevices, pickPreferredDevice } from './deviceSelection';
+import { getCameraSourcePreference } from './cameraSourcePreference';
 
 // Single shared camera session for the whole app - both the persistent
 // gesture module AND the scanner's MindAR tracker read from this SAME
@@ -16,19 +17,31 @@ export function getCurrentCameraInfo() {
   return { label: currentSession.device.label, deviceId: currentSession.device.deviceId };
 }
 
-// If public/camera-bridge.js has detected we're running inside the native
-// Jorjin WebView shell (window.AndroidCamera present), getUserMedia() is
-// never going to work there - the shell was built to push frames in via
-// window.onNativeCameraFrame instead, not to grant camera permission to the
-// page. In that case, wait for the bridge's canvas-backed <video> element
-// instead of ever attempting getUserMedia(); a timeout guards against
-// hanging forever if the shell announces itself but frames never actually
-// arrive. Returns null immediately (not a promise) when there's no native
-// shell, so normal browsers fall straight through to the getUserMedia() path
-// below completely unaffected.
+// Whether to use the native camera-bridge (public/camera-bridge.js) instead
+// of getUserMedia() is decided in this order:
+//   1. An explicit choice from CameraSourceSelect.jsx (cameraSourcePreference.js)
+//      always wins, since it exists specifically to let testing without the
+//      physical 佐臻/Jorjin glasses force a normal getUserMedia() camera even
+//      inside the native shell, or force bridge-waiting even outside it.
+//   2. Otherwise, auto-detect: public/camera-bridge.js sets
+//      window.__cibarCameraBridge.isNativeShell as soon as it runs (true
+//      when window.AndroidCamera is present), since inside that shell
+//      getUserMedia() is never going to work - the shell was built to push
+//      frames in via window.onNativeCameraFrame instead, not to grant
+//      camera permission to the page.
+// Returns null immediately (not a promise) when neither applies, so normal
+// browsers fall straight through to the getUserMedia() path below untouched.
 function getBridgeCameraSession() {
+  const preference = getCameraSourcePreference();
+  if (preference === 'native') return null;
+
   const bridge = window.__cibarCameraBridge;
-  if (!bridge || !bridge.isNativeShell) return null;
+  const useBridge = preference === 'jorjin' || (!preference && bridge && bridge.isNativeShell);
+  if (!useBridge) return null;
+
+  if (!bridge) {
+    return Promise.reject(new Error('已選擇「佐臻 AR 相機」，但找不到相機橋接程式（window.__cibarCameraBridge 未定義）'));
+  }
 
   return (async () => {
     const videoEl = await Promise.race([

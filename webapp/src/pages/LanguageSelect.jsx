@@ -23,7 +23,7 @@ export function LanguageSelect() {
 
   function confirm(index) {
     setLanguage(LANGUAGES[index].code);
-    navigate('/scanner');
+    navigate('/camera-source');
   }
 
   // Keep native DOM focus in lockstep with the gesture/keyboard-driven
