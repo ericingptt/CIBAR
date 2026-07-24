@@ -469,8 +469,8 @@
 .line-photo-thumb{width:220px;height:160px;padding:0;overflow:hidden;display:block}
 .line-photo-img{width:100%;height:100%;object-fit:cover;display:block}
 .line-photo-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font-size:13px;color:#8ea3c2;background:repeating-linear-gradient(45deg,#0c1626,#0c1626 10px,#0f1b2e 10px,#0f1b2e 20px)}
-.line-photo-lightbox-card{padding:0;width:min(360px,100%);overflow:hidden}
-.line-photo-img-large{width:100%;display:block}
+.line-photo-lightbox-card{padding:0;width:min(360px,100%);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.line-photo-img-large{max-width:100%;max-height:78vh;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto}
 .line-photo-placeholder-large{min-height:240px}
 
 .link-card-badge{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#25d0ff,#5578ff);color:#04101f;font-weight:900;display:grid;place-items:center;margin-bottom:8px}

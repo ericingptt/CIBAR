@@ -31,8 +31,9 @@ const EMILY_PHOTO = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/ima
 // day-gaps from the original Day 1/3/5/7/10/12/15 spacing.
 const DAY_OFFSETS = { 'Day 1': 0, 'Day 3': 2, 'Day 5': 4, 'Day 7': 6, 'Day 10': 9, 'Day 12': 11, 'Day 13': 12, 'Day 15': 14 };
 
-const GUESTHOUSE_ROOM_IMG = `${import.meta.env.BASE_URL}assets/scenario2/guesthouse-room-placeholder.webp`;
-const GUESTHOUSE_BOOKING_IMG = `${import.meta.env.BASE_URL}assets/scenario2/guesthouse-booking-placeholder.webp`;
+const GUESTHOUSE_IMAGE_BASE = `${import.meta.env.BASE_URL}assets/scenarios/scenario-02/images/chat/`;
+const GUESTHOUSE_ROOM_IMG = `${GUESTHOUSE_IMAGE_BASE}yilan-villa-room.webp`;
+const GUESTHOUSE_BOOKING_IMG = `${GUESTHOUSE_IMAGE_BASE}yilan-villa-booking-paid.webp`;
 
 const NODES = [
   { id: 'join-sys', from: 'system', text: '你已加入 Emily 為好友', wait: 800, next: 'join-emily1' },
@@ -432,8 +433,9 @@ const NODES = [
     id: 's16-image',
     image: {
       src: GUESTHOUSE_ROOM_IMG,
-      alt: '宜蘭民宿雙人房圖片預留位置',
-      label: '宜蘭民宿雙人房圖片預留位置',
+      alt: 'Emily 傳來的宜蘭民宿雙人房照片，玻璃屋景觀房正對山景',
+      label: '宜蘭民宿雙人房照片',
+      displayDuration: 5000,
     },
     next: 's16-ask',
   },
@@ -507,14 +509,15 @@ const NODES = [
     id: 's20-image',
     image: {
       src: GUESTHOUSE_BOOKING_IMG,
-      alt: 'Emily 宜蘭民宿訂房確認截圖預留位置',
-      label: 'Emily 宜蘭民宿訂房確認截圖預留位置',
+      alt: 'Emily 傳來的宜蘭民宿訂房付款成功截圖',
+      label: '宜蘭民宿訂房付款成功截圖',
+      displayDuration: 6000,
     },
     next: 's20-ask1',
   },
   { id: 's20-ask1', from: 'emily', text: '你看，我真的訂了。', next: 's20-ask2' },
   { id: 's20-ask2', from: 'emily', text: '我還特別選了你之前說想去的地方。', next: 's20-ask3' },
-  { id: 's20-ask3', from: 'emily', text: '我一直以為這個週末，我們終於不用只在手機裡面聊天了。', next: 's20-choice' },
+  { id: 's20-ask3', from: 'emily', text: '我一直以為到時候，我們終於不用只在手機裡面聊天了。', next: 's20-choice' },
   {
     id: 's20-choice',
     choice: true,
@@ -606,11 +609,10 @@ function VideoThumb({ item }) {
   );
 }
 
-// Emily's guesthouse photos - real assets aren't supplied yet (see final
-// report), so this always renders the on-screen placeholder label; the
-// <img> tag is still wired to the real future path so dropping a real photo
-// in at that path starts working immediately with no code change, via the
-// onError fallback below.
+// Emily's guesthouse photos (the Yilan villa room + booking screenshot) -
+// the onError fallback to item.label's text placeholder is kept as a safety
+// net in case an asset path ever goes stale, not because the images are
+// currently missing.
 function PhotoThumb({ item }) {
   const [failed, setFailed] = useState(false);
   return (
@@ -909,12 +911,14 @@ export function PrivateChat() {
   }, [pendingImage, timeline]);
   useAutoMediaPreview(pendingImageItem?.key ?? null, () => setLightboxItem(pendingImageItem));
 
-  // Once the photo lightbox is open, it closes itself after 5s regardless of
-  // whether the player also has a manual "close early" affordance - the
-  // conversation queue only resumes once completeImage() actually fires.
+  // Once the photo lightbox is open, it closes itself on a per-image timer
+  // (each image node's own `displayDuration`, falling back to 5s) - the
+  // booking screenshot gets a beat longer than the room photo so the price
+  // and "已付款" line have time to actually be read. The conversation queue
+  // only resumes once completeImage() actually fires.
   useEffect(() => {
     if (!lightboxItem) return undefined;
-    const t = setTimeout(() => closeImage(), 5000);
+    const t = setTimeout(() => closeImage(), lightboxItem.displayDuration ?? 5000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lightboxItem]);
