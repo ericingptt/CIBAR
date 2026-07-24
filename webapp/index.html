@@ -2,6 +2,15 @@
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Receiver for the native Jorjin camera bridge (window.onNativeCameraFrame),
+      see public/camera-bridge.js. Loaded first, before anything else in this
+      page (including MindAR's importmap-loaded runtime below and the app
+      bundle's own dynamic imports of MindAR/MediaPipe), so the native side
+      never calls into an undefined function no matter how early it starts
+      pushing frames.
+    -->
+    <script src="/camera-bridge.js"></script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="/manifest.json" />
