@@ -5,7 +5,7 @@ import { ButtonGroup } from '../../components/ui/ButtonGroup';
 export function Briefing() {
   return (
     <>
-      <TopBar brand="情境一｜假投資詐騙" homeHref="/scanner" homeLabel="繼續掃描" />
+      <TopBar brand="情境一｜假投資詐騙" homeHref="/scenario-menu" homeLabel="返回情境選單" />
       <section className="hero">
         <h1>案件辨識成功</h1>
         <p>疑似假投資詐騙。你將看到社群廣告、投資老師影片、LINE 群組、假平台與出金保證金的完整流程。</p>

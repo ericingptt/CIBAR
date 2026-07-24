@@ -273,8 +273,8 @@ export function DatingBrowse() {
     // to except the same labeled case-study entry point.
     return (
       <div className="tanu-app">
-        <TanuHeader onProfileClick={() => navigate('/scanner')} />
-        <SimulationRequiredScreen onEnter={enterSimulation} onExit={() => navigate('/scanner')} />
+        <TanuHeader onProfileClick={() => navigate('/scenario-menu')} />
+        <SimulationRequiredScreen onEnter={enterSimulation} onExit={() => navigate('/scenario-menu')} />
         <TanuBottomNav active="cards" />
       </div>
     );
@@ -287,7 +287,7 @@ export function DatingBrowse() {
   if (phase === PHASE.EMILY_SKIPPED) {
     return (
       <div className="tanu-app">
-        <TanuHeader onProfileClick={() => navigate('/scanner')} />
+        <TanuHeader onProfileClick={() => navigate('/scenario-menu')} />
         <EmilySkippedScreen
           onReveal={() => setPhase(PHASE.EMILY_REVEAL)}
           onDecline={() => setPhase(PHASE.SIMULATION_REQUIRED)}
@@ -300,7 +300,7 @@ export function DatingBrowse() {
   if (phase === PHASE.EMILY_REVEAL) {
     return (
       <div className="tanu-app">
-        <TanuHeader onProfileClick={() => navigate('/scanner')} />
+        <TanuHeader onProfileClick={() => navigate('/scenario-menu')} />
         <EmilyRevealScreen person={card} onOpenChat={reconsiderEmily} onBack={() => setPhase(PHASE.EMILY_SKIPPED)} />
         <TanuBottomNav active="cards" />
       </div>
@@ -310,8 +310,8 @@ export function DatingBrowse() {
   if (phase === PHASE.SIMULATION_REQUIRED) {
     return (
       <div className="tanu-app">
-        <TanuHeader onProfileClick={() => navigate('/scanner')} />
-        <SimulationRequiredScreen onEnter={enterSimulation} onExit={() => navigate('/scanner')} />
+        <TanuHeader onProfileClick={() => navigate('/scenario-menu')} />
+        <SimulationRequiredScreen onEnter={enterSimulation} onExit={() => navigate('/scenario-menu')} />
         <TanuBottomNav active="cards" />
       </div>
     );
@@ -320,7 +320,7 @@ export function DatingBrowse() {
   return (
     <>
       <div className={`tanu-app${phase === PHASE.MATCH ? ' tanu-app-blurred' : ''}`}>
-        <TanuHeader onProfileClick={() => navigate('/scanner')} />
+        <TanuHeader onProfileClick={() => navigate('/scenario-menu')} />
         <div className="tanu-card-area">
           <ProfileCard ref={cardRef} person={card} onSwiped={handleSwiped} />
         </div>

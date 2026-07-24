@@ -4,11 +4,11 @@ import { Hotline165 } from './Hotline165';
 
 // Full-screen red danger warning, shared by the two mandatory stop-points in
 // the 幣勝客 BITION story (before the first deposit, and before the
-// top-up/verification payment). No checkbox/consent row anywhere - hand-
-// gesture-only play means nothing here should ever require a small tap
-// target or a "must confirm before continuing" gate. Three large, always-
-// tappable buttons instead: stop, call the 165 hotline, or continue anyway
-// (deliberately the least visually prominent of the three).
+// top-up/verification payment). No checkbox/consent row anywhere - nothing
+// here should ever require a small tap target or a "must confirm before
+// continuing" gate. Three large, always-tappable buttons instead: stop,
+// call the 165 hotline, or continue anyway (deliberately the least visually
+// prominent of the three).
 export function RedWarning({
   title,
   body,

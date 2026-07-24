@@ -2,41 +2,12 @@
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
-    <!--
-      Receiver for the native Jorjin camera bridge (window.onNativeCameraFrame),
-      see public/camera-bridge.js. Loaded first, before anything else in this
-      page (including MindAR's importmap-loaded runtime below and the app
-      bundle's own dynamic imports of MindAR/MediaPipe), so the native side
-      never calls into an undefined function no matter how early it starts
-      pushing frames.
-    -->
-    <script src="/CIBAR/camera-bridge.js"></script>
     <link rel="icon" type="image/svg+xml" href="/CIBAR/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="/CIBAR/manifest.json" />
     <title>AI 防詐調查任務</title>
-    <!--
-      MindAR (used by the Scanner page) has no build-tooling-friendly npm
-      path here: its npm package pulls in a `canvas` native dependency (used
-      by its offline compiler tooling, not the browser runtime) that fails to
-      build in this environment. The browser runtime bundle itself is a real
-      ES module with no such dependency, so it's loaded the same way it was
-      on the pre-SPA static site: a native import map pointing at pinned
-      jsdelivr CDN URLs, resolved via a dynamic import() in
-      src/scanner/useTracker.js.
-    -->
-
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-          "mind-ar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
-        }
-      }
-    </script>
-    <script type="module" crossorigin src="/CIBAR/assets/index-vUsjqysn.js"></script>
-    <link rel="stylesheet" crossorigin href="/CIBAR/assets/index-BmgTko7E.css">
+    <script type="module" crossorigin src="/CIBAR/assets/index-DzOZzJAc.js"></script>
+    <link rel="stylesheet" crossorigin href="/CIBAR/assets/index-Cs7-tBB6.css">
   </head>
   <body>
     <div id="root"></div>
