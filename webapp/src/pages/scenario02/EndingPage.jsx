@@ -35,7 +35,7 @@ export function EndingPage() {
         </Card>
         <p className="bition-ending-note">遇到可疑投資訊息，請立即停止付款。撥打 165 反詐騙專線，或至鄰近派出所求證。</p>
         <ButtonGroup>
-          <Button to="/scanner">繼續掃描下一個線索</Button>
+          <Button to="/scenario-menu">返回情境選單</Button>
           <Button variant="secondary" onClick={restart}>重新體驗</Button>
         </ButtonGroup>
       </div>

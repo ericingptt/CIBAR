@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useStageClassName } from '../../shell/StageClassContext';
 import { useSaveScenario02Progress, savePlatformState } from '../../lib/scenario02Store';
 
-// A hand-gesture-only player has no keyboard and shouldn't ever summon a
-// mobile virtual one, so this is a "simulated quick sign-up": every field
-// is pre-filled and purely a display card (not an <input>, so there's
-// nothing to focus and no keyboard risk), the terms line is pre-agreed
-// text rather than a checkbox, and the only real control is one big
-// "建立帳戶" button - always tappable from the start, no gating.
+// Keeping the phone's own keyboard from ever popping up matters here, so
+// this is a "simulated quick sign-up": every field is pre-filled and purely
+// a display card (not an <input>, so there's nothing to focus and no
+// keyboard risk), the terms line is pre-agreed text rather than a checkbox,
+// and the only real control is one big "建立帳戶" button - always tappable
+// from the start, no gating.
 const FIELDS = [
   { label: '手機號碼', value: '0965 165 165' },
   { label: '登入密碼', value: '********' },
